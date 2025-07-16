@@ -6,6 +6,7 @@
 	objectVersion = 77;
 	objects = {
 
+<<<<<<< HEAD
 /* Begin PBXBuildFile section */
 		285FCDF22E2B1CD700E35796 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 285FCDF12E2B1CD700E35796 /* FirebaseAI */; };
 		285FCDF42E2B1CD700E35796 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 285FCDF32E2B1CD700E35796 /* FirebaseAuth */; };
@@ -14,6 +15,8 @@
 		285FCDFA2E2B1CD700E35796 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 285FCDF92E2B1CD700E35796 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
+=======
+>>>>>>> ef0b62e (Initial Commit)
 /* Begin PBXFileReference section */
 		285FCDB12E2796B900E35796 /* Textsy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Textsy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -31,11 +34,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				285FCDF22E2B1CD700E35796 /* FirebaseAI in Frameworks */,
 				285FCDF82E2B1CD700E35796 /* FirebaseFirestore in Frameworks */,
 				285FCDF62E2B1CD700E35796 /* FirebaseCore in Frameworks */,
 				285FCDFA2E2B1CD700E35796 /* FirebaseStorage in Frameworks */,
 				285FCDF42E2B1CD700E35796 /* FirebaseAuth in Frameworks */,
+=======
+>>>>>>> ef0b62e (Initial Commit)
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,11 +84,14 @@
 			);
 			name = Textsy;
 			packageProductDependencies = (
+<<<<<<< HEAD
 				285FCDF12E2B1CD700E35796 /* FirebaseAI */,
 				285FCDF32E2B1CD700E35796 /* FirebaseAuth */,
 				285FCDF52E2B1CD700E35796 /* FirebaseCore */,
 				285FCDF72E2B1CD700E35796 /* FirebaseFirestore */,
 				285FCDF92E2B1CD700E35796 /* FirebaseStorage */,
+=======
+>>>>>>> ef0b62e (Initial Commit)
 			);
 			productName = Textsy;
 			productReference = 285FCDB12E2796B900E35796 /* Textsy.app */;
@@ -112,9 +121,12 @@
 			);
 			mainGroup = 285FCDA82E2796B900E35796;
 			minimizedProjectReferenceProxies = 1;
+<<<<<<< HEAD
 			packageReferences = (
 				285FCDF02E2B1CD700E35796 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
+=======
+>>>>>>> ef0b62e (Initial Commit)
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 285FCDB22E2796B900E35796 /* Products */;
 			projectDirPath = "";
@@ -273,7 +285,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Textsy/Preview Content\"";
+<<<<<<< HEAD
 				DEVELOPMENT_TEAM = "";
+=======
+>>>>>>> ef0b62e (Initial Commit)
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -302,7 +317,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Textsy/Preview Content\"";
+<<<<<<< HEAD
 				DEVELOPMENT_TEAM = "";
+=======
+>>>>>>> ef0b62e (Initial Commit)
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -345,6 +363,7 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+<<<<<<< HEAD
 
 /* Begin XCRemoteSwiftPackageReference section */
 		285FCDF02E2B1CD700E35796 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
@@ -384,6 +403,8 @@
 			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
+=======
+>>>>>>> ef0b62e (Initial Commit)
 	};
 	rootObject = 285FCDA92E2796B900E35796 /* Project object */;
 }
