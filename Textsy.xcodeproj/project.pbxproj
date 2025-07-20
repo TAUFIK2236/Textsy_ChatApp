@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 /* Begin PBXBuildFile section */
 		285FCDF22E2B1CD700E35796 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 285FCDF12E2B1CD700E35796 /* FirebaseAI */; };
 		285FCDF42E2B1CD700E35796 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 285FCDF32E2B1CD700E35796 /* FirebaseAuth */; };
@@ -18,11 +14,6 @@
 		285FCDFA2E2B1CD700E35796 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 285FCDF92E2B1CD700E35796 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
-<<<<<<< HEAD
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 /* Begin PBXFileReference section */
 		285FCDB12E2796B900E35796 /* Textsy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Textsy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -40,20 +31,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 				285FCDF22E2B1CD700E35796 /* FirebaseAI in Frameworks */,
 				285FCDF82E2B1CD700E35796 /* FirebaseFirestore in Frameworks */,
 				285FCDF62E2B1CD700E35796 /* FirebaseCore in Frameworks */,
 				285FCDFA2E2B1CD700E35796 /* FirebaseStorage in Frameworks */,
 				285FCDF42E2B1CD700E35796 /* FirebaseAuth in Frameworks */,
-<<<<<<< HEAD
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,20 +78,11 @@
 			);
 			name = Textsy;
 			packageProductDependencies = (
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 				285FCDF12E2B1CD700E35796 /* FirebaseAI */,
 				285FCDF32E2B1CD700E35796 /* FirebaseAuth */,
 				285FCDF52E2B1CD700E35796 /* FirebaseCore */,
 				285FCDF72E2B1CD700E35796 /* FirebaseFirestore */,
 				285FCDF92E2B1CD700E35796 /* FirebaseStorage */,
-<<<<<<< HEAD
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 			);
 			productName = Textsy;
 			productReference = 285FCDB12E2796B900E35796 /* Textsy.app */;
@@ -139,18 +112,9 @@
 			);
 			mainGroup = 285FCDA82E2796B900E35796;
 			minimizedProjectReferenceProxies = 1;
-<<<<<<< HEAD
-<<<<<<< HEAD
 			packageReferences = (
 				285FCDF02E2B1CD700E35796 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
-			packageReferences = (
-				285FCDF02E2B1CD700E35796 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-			);
->>>>>>> cd22561 (Chatapp from Scatch)
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 285FCDB22E2796B900E35796 /* Products */;
 			projectDirPath = "";
@@ -309,14 +273,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Textsy/Preview Content\"";
-<<<<<<< HEAD
-<<<<<<< HEAD
 				DEVELOPMENT_TEAM = "";
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
-				DEVELOPMENT_TEAM = "";
->>>>>>> cd22561 (Chatapp from Scatch)
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -345,14 +302,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Textsy/Preview Content\"";
-<<<<<<< HEAD
-<<<<<<< HEAD
 				DEVELOPMENT_TEAM = "";
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
-				DEVELOPMENT_TEAM = "";
->>>>>>> cd22561 (Chatapp from Scatch)
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -395,10 +345,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 
 /* Begin XCRemoteSwiftPackageReference section */
 		285FCDF02E2B1CD700E35796 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
@@ -438,11 +384,6 @@
 			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
-<<<<<<< HEAD
-=======
->>>>>>> ef0b62e (Initial Commit)
-=======
->>>>>>> cd22561 (Chatapp from Scatch)
 	};
 	rootObject = 285FCDA92E2796B900E35796 /* Project object */;
 }
