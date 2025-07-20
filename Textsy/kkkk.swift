@@ -1,18 +1,18 @@
 //
-//  SwiftUIView.swift
+//  kkkk.swift
 //  Textsy
 //
-//  Created by Anika Tabasum on 7/19/25.
+//  Created by Anika Tabasum on 7/20/25.
 //
 
 import SwiftUI
 
-struct SwiftUIView: View {
+struct kkkk: View {
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
     }
 }
 
 #Preview {
-    SwiftUIView()
+    kkkk()
 }
