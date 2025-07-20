@@ -1,0 +1,43 @@
+# ============================
+# Xcode / macOS
+# ============================
+*.xcworkspace
+*.xcuserdata
+*.xcuserstate
+*.moved-aside
+*.xcuserdatad
+*.orig
+.DS_Store
+
+# ============================
+# Build
+# ============================
+build/
+DerivedData/
+*.o
+*.LinkFileList
+*.dSYM.zip
+*.dSYM
+
+# ============================
+# Swift Package Manager
+# ============================
+.build/
+.swiftpm/
+Package.resolved
+
+# ============================
+# CocoaPods (if used)
+# ============================
+Pods/
+Podfile.lock
+
+# ============================
+# Firebase
+# ============================
+GoogleService-Info.plist
+
+# ============================
+# Preview Content (optional)
+# ============================
+*.preview-thumbnails
