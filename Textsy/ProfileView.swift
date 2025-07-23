@@ -86,7 +86,7 @@ struct ProfileView: View {
             }
             .background(Color(.bgc))
         }
-        .navigationTitle("My Profile")
+        .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(image: $inputImage)
