@@ -1,3 +1,11 @@
+//
+//  AlertCardView.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/21/25.
+//
+
+
 import SwiftUI
 
 struct AlertCardView: View {
@@ -34,3 +42,18 @@ struct AlertCardView: View {
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
+
+#Preview("Alert Preview - Textsy Style") {
+    ZStack {
+        Color(.bgc)
+            .ignoresSafeArea()
+
+        AlertCardView(
+            title: "Oops!",
+            message: "Something went wrong while signing in. Please check your email and password.",
+            dismissAction: {}
+        )
+    }
+    .preferredColorScheme(.light)
+}
+

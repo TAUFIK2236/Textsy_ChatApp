@@ -9,7 +9,8 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
-    @State private var email = ""
+  
+    @StateObject private var authVM = AuthViewModel.shared
 
     var body: some View {
         GeometryReader { geometry in
@@ -41,7 +42,7 @@ struct ForgotPasswordView: View {
                         .font(.subheadline)
 
                     // Email Field
-                    TextField("Email Address", text: $email)
+                    TextField("Email Address", text: $authVM.email)
                         .padding()
                         .font(.title3.bold())
                         .frame(height: geometry.size.height * 0.075)
@@ -53,6 +54,7 @@ struct ForgotPasswordView: View {
 
                     // Reset Button
                     Button(action: {
+                        Task{await authVM.resetPassword()}
                         // TODO: Send reset email with Firebase
                     }) {
                         Text("Send Reset Link")
@@ -69,7 +71,7 @@ struct ForgotPasswordView: View {
 
                     // Log In Button
                     Button(action: {
-                        // Go back to login
+                        AppRouter.shared.goToLogin()
                     }) {
                         Text("Remember your password? Log In")
                             .foregroundColor(.sdc)
@@ -78,6 +80,16 @@ struct ForgotPasswordView: View {
                     .padding(.bottom, geometry.size.height * 0.03)
                 }
                 .padding(.vertical)
+                
+                if authVM.isLoading {
+                    LoadingCircleView()
+                }
+
+                if authVM.showAlert, let msg = authVM.alertMessage {
+                    AlertCardView(title: "Notice", message: msg) {
+                        authVM.showAlert = false
+                    }
+                }
             }
             .navigationBarBackButtonHidden(true)         }
     }

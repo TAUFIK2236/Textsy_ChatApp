@@ -1,9 +1,19 @@
+//
+//  UserModel.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/21/25.
+//
+
+
 struct UserModel {
     var name: String
     var age: Int
     var location: String
     var bio: String
     var profileImageUrl: String?
+    
+    var displayName: String { name } 
 
     init(_ data: [String: Any]) {
         self.name = data["name"] as? String ?? ""

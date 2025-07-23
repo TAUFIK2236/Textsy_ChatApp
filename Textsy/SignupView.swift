@@ -1,10 +1,8 @@
 import SwiftUI
 
 struct SignupView: View {
-    @State private var email = ""
-    @State private var password = ""
-    @State private var confirmPassword = ""
 
+    @StateObject private var authVM = AuthViewModel.shared
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -29,7 +27,7 @@ struct SignupView: View {
 
                     // Input Fields
                     VStack(spacing: geometry.size.height * 0.02) {
-                        TextField("Email Address", text: $email)
+                        TextField("Email Address", text: $authVM.email)
                             .padding()
                             .font(.title3.bold())
                             .frame(height: geometry.size.height * 0.075)
@@ -38,7 +36,7 @@ struct SignupView: View {
                             .foregroundColor(.white)
 
 
-                        SecureField("Password", text: $password)
+                        SecureField("Password", text: $authVM.password)
                             .padding()
                             .font(.title3.bold())
                             .frame(height: geometry.size.height * 0.075)
@@ -47,7 +45,7 @@ struct SignupView: View {
                             .foregroundColor(.white)
 
 
-                        SecureField("Confirm Password", text: $confirmPassword)
+                        SecureField("Confirm Password", text: $authVM.confirmPassword)
                             .padding()
                             .font(.title3.bold())
                             .frame(height: geometry.size.height * 0.075)
@@ -59,7 +57,8 @@ struct SignupView: View {
 
                     // Sign Up Button
                     Button(action: {
-                        // TODO: Handle sign up logic
+                        Task{  await authVM.signup()
+}                        // TODO: Handle sign up logic
                     }) {
                         Text("Sign Up")
                             .font(.title3.bold())
@@ -73,10 +72,11 @@ struct SignupView: View {
 
                     // Switch to login
                     HStack {
-                        Text("Already have an account?")
+                        Text("Have an account?")
                             .foregroundColor(.gray)
 
                         Button("Log In") {
+                            AppRouter.shared.goToLogin()
                             // TODO: Navigate to LoginView
                         }
                         .foregroundColor(.sdc)
@@ -86,8 +86,17 @@ struct SignupView: View {
                     Spacer()
                 }
                 .padding(.vertical)
+                
+                
+                if authVM.isLoading {
+                    LoadingCircleView()
+                }
+                if authVM.showAlert,let msg = authVM.alertMessage {
+                    AlertCardView(title:"Notice" , message:msg){authVM.showAlert = false}
+                }
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 #Preview("Signup View - Light Mode") {

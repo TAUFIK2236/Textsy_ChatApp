@@ -11,6 +11,7 @@ import SwiftUI
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
+    @StateObject private var authVM = AuthViewModel.shared
 
     var body: some View {
         GeometryReader { geometry in
@@ -37,7 +38,7 @@ struct LoginView: View {
 
                     // Fields
                     VStack(spacing: geometry.size.height * 0.02) {
-                        TextField("Email Address", text: $email)
+                        TextField("Email Address", text: $authVM.email)
                             .padding()
                             .font(.title3.bold())
                             .frame(height: geometry.size.height * 0.075)
@@ -45,7 +46,7 @@ struct LoginView: View {
                             .cornerRadius(10)
                             .foregroundColor(.white)
 
-                        SecureField("Password", text: $password)
+                        SecureField("Password", text: $authVM.password)
                             .padding()
                             .font(.title3.bold())
                             .frame(height: geometry.size.height * 0.075)
@@ -57,7 +58,9 @@ struct LoginView: View {
 
                     // Login Button
                     Button(action: {
-                        // Handle login
+                        Task{
+                            await authVM.login()
+                        }
                     }) {
                         Text("Log In")
                             .font(.headline)
@@ -72,13 +75,15 @@ struct LoginView: View {
 
                     // Forgot + Sign Up
                     HStack {
-                        Button("Forgot password?"){}
+                        Button("Forgot password?"){
+                            AppRouter.shared.goToForgotPassword()
+                        }
                             .foregroundColor(.gray)
 
                         Spacer()
 
                         Button("Sign Up") {
-                            // Handle sign up
+                            AppRouter.shared.goToSignup() //Navigate to signUp page
                         }
                         .foregroundColor(.sdc)
                     }
@@ -88,12 +93,20 @@ struct LoginView: View {
                     Spacer()
                 }
                 .padding(.vertical)
+                
+                if authVM.isLoading {
+                    LoadingCircleView()
+                }
+                if authVM.showAlert,let msg = authVM.alertMessage {
+                    AlertCardView(title:"Notice" , message:msg){authVM.showAlert = false}
+                }
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 
-#Preview("Home View - Light Mode") {
+#Preview {
     LoginView()
         .preferredColorScheme(.light)
 }

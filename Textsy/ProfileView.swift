@@ -9,14 +9,16 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var name = "Anika Tabasum"
-    @State private var age = "21"
-    @State private var location = "New York, USA"
-    @State private var bio = "I love coffee, coding, and late-night talks 🌙"
-    @State private var profileImage: Image = Image("anika_profile") // Replace with user image
+    @State private var name = ""
+    @State private var age = ""
+    @State private var location = ""
+    @State private var bio = ""
+    @State private var profileImage: Image = Image("Anika") // Replace with user image
     
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
+    
+    @StateObject private var authVM = AuthViewModel.shared
 
     var body: some View {
         GeometryReader { geometry in
@@ -69,6 +71,9 @@ struct ProfileView: View {
                     // MARK: - Save Button
                     Button(action: {
                         // TODO: Save changes to Firebase
+                        Task{
+                            await authVM.updateProfile(name: name, age:age, location: location, bio: bio)
+                        }
                     }) {
                         Text("Save Changes")
                             .frame(maxWidth: .infinity)
@@ -85,6 +90,15 @@ struct ProfileView: View {
                 .padding(.bottom, 40)
             }
             .background(Color(.bgc))
+            
+            if authVM.isLoading{
+                LoadingCircleView()
+            }
+            if authVM.showAlert , let msg = authVM.alertMessage{
+                AlertCardView(title:"Notice", message:msg){
+                    authVM.showAlert = false
+                }
+            }
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
@@ -92,8 +106,23 @@ struct ProfileView: View {
             ImagePicker(image: $inputImage)
         }
         .onChange(of: inputImage) { _ in loadImage() }
+        .task {
+            authVM.isLoading = true
+            authVM.fetchUserProfile()
+            DispatchQueue.main.asyncAfter(deadline:.now() + 1.2){
+                if let user = authVM.currentUser{
+                    name = user.name
+                    age = String(user.age)
+                    location = user.location
+                    bio = user.bio
+                }
+            }
+        }
     }
 
+    
+    
+    
     // MARK: - Helper UI Components
     private func profileField(title: String, text: Binding<String>, keyboard: UIKeyboardType = .default) -> some View {
         VStack(alignment: .leading, spacing: 6) {

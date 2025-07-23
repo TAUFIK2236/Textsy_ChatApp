@@ -10,11 +10,14 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var router: AppRouter
-
+    @EnvironmentObject var session : UserSession
     var body: some View {
         switch router.currentScreen {
         case .splash:
             SplashView()
+                .onAppear{
+                    checkToken()
+                }
         case .login:
             LoginView()
         case .signup:
@@ -22,7 +25,21 @@ struct RootView: View {
         case .forgotPassword:
             ForgotPasswordView()
         case .mainApp:
-            HomeView()
+            if session.currentUser?.displayName == nil {
+                ProfileView()
+            }else{
+                HomeView()
+            }
+        }
+    }
+    
+    
+    
+    private func checkToken(){
+        if let _ = UserDefaults.standard.string(forKey: "userUID"){
+            router.goToMainApp()
+        }else{
+            router.goToLogin()
         }
     }
 }

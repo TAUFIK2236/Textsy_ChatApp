@@ -1,6 +1,7 @@
 
 
 import SwiftUI
+import FirebaseCore
 
 struct ChatCardView: View {
     let chat: ChatModel
@@ -11,7 +12,7 @@ struct ChatCardView: View {
 
             HStack(spacing: 12) {
                 // Profile Image
-                AsyncImage(url: URL(string: chat.profileImageURL)) { image in
+                AsyncImage(url: URL(string: chat.profileImageURL ?? "")) { image in
                     image
                         .resizable()
                         .scaledToFill()
@@ -27,7 +28,7 @@ struct ChatCardView: View {
                         .font(.headline)
                         .foregroundColor(.color)
 
-                    Text(chat.lastMessage)
+                    Text(chat.lastMessage ?? "loading....")
                         .font(.subheadline)
                         .foregroundColor(.color.opacity(0.7))
                         .lineLimit(1)
@@ -73,19 +74,23 @@ struct ChatCardView: View {
 }
 
 
-#Preview("Light Mode - iPhone Size") {
-    ChatCardView(chat: ChatModel(
-        id: "1",
-        userName: "Alice Johnson",
-        lastMessage: "Hey! How was the trip?",
-        timeStamp: Date(),
-        profileImageURL: "https://randomuser.me/api/portraits/women/1.jpg",
-        unreadCount: 2
-    ))
-    .frame(height: 70)
-    .previewLayout(.sizeThatFits)
-    .preferredColorScheme(.dark)
+#Preview("Light Mode – iPhone Size") {
+    let data: [String: Any] = [
+        "userName": "Alice Johnson",
+        "lastMessage": "Hey! How was the trip?",
+        "timeStamp": Timestamp(date: Date()),
+        "profileImageURL": "https://randomuser.me/api/portraits/women/1.jpg",
+        "unreadCount": 2
+    ]
+
+    let chat = ChatModel(id: "1", data: data)!
+
+    return ChatCardView(chat: chat)
+        //.frame(height: 70)
+       // .previewLayout(.sizeThatFits)
+        .preferredColorScheme(.dark)
 }
+
 
 //#Preview("Dark Mode - Large Width") {
 //    ChatCardView(chat: ChatModel(

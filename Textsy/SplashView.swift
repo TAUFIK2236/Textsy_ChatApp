@@ -42,9 +42,7 @@ struct SplashView: View {
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation {
-                    showMainApp = true
-                }
+                AppRouter.shared.goToLogin()
             }
         }
 

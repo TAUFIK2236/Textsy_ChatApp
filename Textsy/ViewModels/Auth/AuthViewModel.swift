@@ -19,6 +19,10 @@ class AuthViewModel: ObservableObject {
     @Published var email = ""
     @Published var password = ""
     @Published var confirmPassword = ""
+    
+    // MARK: - User Related
+    @Published var currentUser: UserModel? = nil
+    
 
     // MARK: - UI feedback
     @Published var isLoading = false
@@ -58,17 +62,35 @@ class AuthViewModel: ObservableObject {
 
             try await db.collection("users").document(uid).setData([
                 "email": email,
-                "createdAt": FieldValue.serverTimestamp()
+                "createdAt": FieldValue.serverTimestamp(),
+                "name": "", // ← important for ProfileView check
+                "age": 0,
+                "location": "",
+                "bio": "",
+                "profileImageUrl": ""
             ])
 
-            UserSession.shared.updateUser(with: result.user)
-            saveToken(uid: uid)
-            AppRouter.shared.goToMainApp()
+            //  FETCH profile and update session
+            let snapshot = try await db.collection("users").document(uid).getDocument()
+            if let data = snapshot.data() {
+                let model = UserModel(data)
+                UserSession.shared.updateUser(with: result.user) // for Auth
+                UserSession.shared.currentUser = result.user
+                self.currentUser = model// for Profile check
+                saveToken(uid: uid)
+                DispatchQueue.main.async {
+                    AppRouter.shared.goToMainApp()
+                }
+            } else {
+                show(message: "Could not load profile.")
+            }
+
         } catch {
             show(error: error)
         }
         isLoading = false
     }
+
 
     // MARK: - Password Reset
     func resetPassword() async {
@@ -81,7 +103,11 @@ class AuthViewModel: ObservableObject {
         isLoading = true
         do {
             try await auth.sendPasswordReset(withEmail: email)
-            show(message: "Reset link sent. Check your email.")
+            DispatchQueue.main.async {
+                self.show(message: "Reset link sent. Check your email.")
+                AppRouter.shared.goToLogin()
+            }
+
         } catch {
             show(error: error)
         }
@@ -166,9 +192,12 @@ class AuthViewModel: ObservableObject {
     }
 
     private func show(error: Error) {
+        print("❌ Firebase Raw Error:", error)
         alertMessage = error.localizedDescription
         showAlert = true
     }
+
+
 
     private func show(message: String) {
         alertMessage = message
@@ -189,4 +218,43 @@ class AuthViewModel: ObservableObject {
     private func clearToken() {
         UserDefaults.standard.removeObject(forKey: "userUID")
     }
+    
+    // MARK: - Upadate the profile(Save change button in ProfileEditView)
+    func updateProfile(name: String, age: String, location: String, bio: String) async {
+        resetState()
+        guard let uid = auth.currentUser?.uid else {
+            show(message: "User not logged in.")
+            return
+        }
+
+        isLoading = true
+        do {
+            try await db.collection("users").document(uid).updateData([
+                "name": name,
+                "age": Int(age)!,
+                "location": location,
+                "bio": bio
+            ])
+            show(message: "Changes saved successfully!")
+        } catch {
+            show(error: error)
+        }
+        isLoading = false
+    }
+
+
+    func fetchUserProfile() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(uid).getDocument { snapshot, error in
+            self.isLoading = false
+            if let data = snapshot?.data() {
+                self.currentUser = UserModel(data)
+            } else {
+                self.alertMessage = "Failed to load profile."
+                self.showAlert = true
+            }
+        }
+    }
+
+
 }
