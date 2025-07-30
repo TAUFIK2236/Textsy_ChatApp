@@ -1,37 +1,41 @@
-
 import Foundation
 import FirebaseFirestore
 
-struct ChatModel: Identifiable {
-    let id: String
-    let userName: String
-    let lastMessage: String?
-    let timeStamp: Date
-    let profileImageURL: String?
-    let unreadCount: Int
+// 💬 Each chat preview card in HomeView
+struct ChatModel: Identifiable, Codable {
+    var id: String // 📄 Firestore doc ID
+    var userName: String
+    var lastMessage: String?
+    var timeStamp: Date
+    var profileImageURL: String?
+    var unreadCount: Int
 
-    // MARK: - Firestore Initializer
+    // ✅ Init from Firestore document
     init?(id: String, data: [String: Any]) {
-        self.id = id
-        self.userName = data["userName"] as? String ?? "Unknown"
-        self.lastMessage = data["lastMessage"] as? String
-        self.profileImageURL = data["profileImageURL"] as? String
-        self.unreadCount = data["unreadCount"] as? Int ?? 0
-
-        // Convert Firestore Timestamp → Date
-        if let timestamp = data["timeStamp"] as? Timestamp {
-            self.timeStamp = timestamp.dateValue()
-        } else {
-            self.timeStamp = Date() // fallback
+        guard
+            let userName = data["userName"] as? String,
+            let timeStamp = data["timeStamp"] as? Timestamp,
+            let unreadCount = data["unreadCount"] as? Int
+        else {
+            return nil // ❌ Fail if required fields are missing
         }
+
+        self.id = id
+        self.userName = userName
+        self.lastMessage = data["lastMessage"] as? String
+        self.timeStamp = timeStamp.dateValue() // 📆 Firebase timestamp to Swift Date
+        self.profileImageURL = data["profileImageURL"] as? String
+        self.unreadCount = unreadCount
     }
 
-    // MARK: - Display Formatter
-    var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        return formatter.string(from: timeStamp)
+    // ✅ Convert to dictionary for Firestore upload
+    var asDictionary: [String: Any] {
+        return [
+            "userName": userName,
+            "lastMessage": lastMessage ?? "",
+            "timeStamp": Timestamp(date: timeStamp),
+            "profileImageURL": profileImageURL ?? "",
+            "unreadCount": unreadCount
+        ]
     }
 }
-

@@ -1,25 +1,42 @@
-//
-//  UserModel.swift
-//  Textsy
-//
-//  Created by Anika Tabasum on 7/21/25.
-//
+import Foundation
+import FirebaseFirestore
 
-
-struct UserModel {
+// 🧍‍♀️ A single user's info (from Firestore)
+struct UserModel: Identifiable, Codable {
+    var id: String // 📄 Firestore doc ID
     var name: String
     var age: Int
     var location: String
     var bio: String
-    var profileImageUrl: String?
-    
-    var displayName: String { name } 
+    var profileImageUrl: String? // 🌄 May be nil
 
-    init(_ data: [String: Any]) {
-        self.name = data["name"] as? String ?? ""
-        self.age = data["age"] as? Int ?? 0
-        self.location = data["location"] as? String ?? ""
-        self.bio = data["bio"] as? String ?? ""
-        self.profileImageUrl = data["profileImageUrl"] as? String
+    // ✅ Init from Firestore document
+    init?(id: String, data: [String: Any]) {
+        guard
+            let name = data["name"] as? String,
+            let age = data["age"] as? Int,
+            let location = data["location"] as? String,
+            let bio = data["bio"] as? String
+        else {
+            return nil // ❌ If anything is missing, fail
+        }
+
+        self.id = id
+        self.name = name
+        self.age = age
+        self.location = location
+        self.bio = bio
+        self.profileImageUrl = data["profileImageUrl"] as? String // optional
+    }
+
+    // ✅ Convert this model to a dictionary for saving to Firestore
+    var asDictionary: [String: Any] {
+        return [
+            "name": name,
+            "age": age,
+            "location": location,
+            "bio": bio,
+            "profileImageUrl": profileImageUrl ?? ""
+        ]
     }
 }

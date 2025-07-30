@@ -166,14 +166,4 @@ struct ChatBubble: View {
         .padding(.horizontal, 10)
     }
 }
-//#Preview("Message Bubble - My Message") {
-//    ChatBubble(message: ChatBubbleModel(
-//        text: "Hey, what's up!",
-//        isMe: true,
-//        time: "3:45 PM"
-//    ))
-//    .preferredColorScheme(.dark)
-//    .padding()
-//    .background(Color.black)
-//}
 
