@@ -1,9 +1,4 @@
-//
-//  AuthRouterView.swift
-//  Textsy
-//
-//  Created by Anika Tabasum on 7/25/25.
-//
+
 
 
 import SwiftUI
@@ -22,6 +17,7 @@ struct AuthRouterView: View {
             SignupView()
                 .environmentObject(router)
                 .environmentObject(UserSession.shared)
+                .environmentObject(AppRouter())
 
         case .forgot:
             ForgotPasswordView()

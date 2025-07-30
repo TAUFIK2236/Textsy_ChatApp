@@ -1,9 +1,4 @@
-//
-//  LoadingCircleView.swift
-//  Textsy
-//
-//  Created by Anika Tabasum on 7/21/25.
-//
+
 
 
 import SwiftUI
@@ -25,7 +20,7 @@ struct ColorChangingSpinner: View {
 
     var body: some View {
         Circle()
-            //.trim(from: 0, to: 1)
+           
             
             .stroke(
                 Color(hue: hue, saturation: 0.8, brightness: 0.7),//need to change color

@@ -74,22 +74,7 @@ struct ChatCardView: View {
 }
 
 
-#Preview("Light Mode – iPhone Size") {
-    let data: [String: Any] = [
-        "userName": "Alice Johnson",
-        "lastMessage": "Hey! How was the trip?",
-        "timeStamp": Timestamp(date: Date()),
-        "profileImageURL": "https://randomuser.me/api/portraits/women/1.jpg",
-        "unreadCount": 2
-    ]
 
-    let chat = ChatModel(id: "1", data: data)!
-
-    return ChatCardView(chat: chat)
-        //.frame(height: 70)
-       // .previewLayout(.sizeThatFits)
-        .preferredColorScheme(.dark)
-}
 
 
 //#Preview("Dark Mode - Large Width") {

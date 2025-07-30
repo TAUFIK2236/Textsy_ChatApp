@@ -1,17 +1,3 @@
-//
-//  NetworkMonitor.swift
-//  Textsy
-//
-//  Created by Anika Tabasum on 7/25/25.
-//
-
-
-//
-//  NetworkMonitor.swift
-//  TodoApp
-//
-//  Created by Anika Tabasum on 7/12/25.
-//
 
 
 import Network

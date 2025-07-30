@@ -1,6 +1,16 @@
+//
+//  SideDrawerView.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/25/25.
+//
+
+
 import SwiftUI
 
 struct SideDrawerView: View {
+ 
+
     @Binding var isOpen: Bool
 
     var onSettings: () -> Void
@@ -29,7 +39,7 @@ struct SideDrawerView: View {
                         .background(Color.gray.opacity(0.3))
 
                     // Functional Buttons
-                    drawerButton(title: "Edit Profile", systemIcon: "person.crop.circle.badge.pencil", action: onEditProfile)
+                    drawerButton(title: "Edit Profile", systemIcon: "person.crop.circle.badge", action: onEditProfile)
                     drawerButton(title: "Explore", systemIcon: "magnifyingglass", action: onExplore)
                     drawerButton(title: "Notifications", systemIcon: "bell.fill", action: onNotification)
                     drawerButton(title: "Settings", systemIcon: "gearshape.fill", action: onSettings)
@@ -38,7 +48,7 @@ struct SideDrawerView: View {
                         .padding(.vertical, 10)
 
                     // Logout & Exit
-                    drawerButton(title: "Log Out", systemIcon: "arrow.backward.circle", action: onLogout, background: .sdc)
+                    drawerButton(title: "Log Out", systemIcon: "arrow.backward.circle", action: onLogout, background: .gray)
                     drawerButton(title: "Exit", systemIcon: "xmark.circle", action: onExit, background: .gray)
 
                     Spacer()
@@ -46,11 +56,12 @@ struct SideDrawerView: View {
                 .padding(.top, 50)
                 .padding(.horizontal, 20)
                 .frame(width: drawerWidth, height: geometry.size.height)
+                
                 .background(Color(.fieldT))
                 .clipShape(RoundedCorner(radius: 30, corners: [.topRight, .bottomRight]))
                 .shadow(color: .black.opacity(0.2), radius: 10)
                 .offset(x: isOpen ? 0 : -drawerWidth)
-                .animation(.easeInOut(duration: 0.3), value: isOpen)
+                .animation(.easeInOut(duration: 0.5), value: isOpen)
 
                 Spacer()
             }
@@ -75,5 +86,45 @@ struct SideDrawerView: View {
             .background(background)
             .cornerRadius(12)
         }
+    }
+}
+
+
+
+#Preview("Side Drawer – Full Buttons") {
+    SideDrawerPreviewWrapper()
+        .preferredColorScheme(.light)
+}
+
+struct SideDrawerPreviewWrapper: View {
+    @State private var isOpen = true
+
+    var body: some View {
+        ZStack {
+            Color(.bgc).ignoresSafeArea()
+
+            SideDrawerView(
+                isOpen: $isOpen,
+                onSettings: { print("⚙️ Settings") },
+                onEditProfile: { print("✏️ Edit Profile") },
+                onExplore: { print("🔍 Explore") },
+                onNotification: { print("🔔 Notification") },
+                onLogout: { print("🚪 Log Out") },
+                onExit: { print("❌ Exit App") }
+            )
+        }
+    }
+}
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = []
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }

@@ -1,46 +1,84 @@
-//
-//  HomeView.swift
-//  Textsy
-//
-//  Created by Anika Tabasum on 7/16/25.
-//
-
-
-// Views/HomeView.swift
-
 import SwiftUI
+import Foundation
 
 struct HomeView: View {
     @StateObject private var viewModel = ChatViewModel()
+    @EnvironmentObject var appRouter: AppRouter
+
+    @EnvironmentObject var session: UserSession
     @State private var searchText = ""
+    @State private var isDrawerOpen = false
 
     var body: some View {
         NavigationStack {
-            GeometryReader { geometry in
-                VStack(spacing:0) {
-                    // Custom top bar
-                    topBar
+            ZStack {
+                GeometryReader { geometry in
+                    VStack(spacing: 0) {
+                        // 🔝 Custom top bar
+                        topBar
 
-                    VStack{
-                        searchBar
-                            .padding(.top,15)
-                            .padding(.horizontal,7)
+                        VStack {
+                            searchBar
+                                .padding(.top, 15)
+                                .padding(.horizontal, 7)
 
-                        ScrollView {
-                            LazyVStack(spacing: 0) {
-                                ForEach(filteredChats) { chat in
-                                    ChatCardView(chat: chat)
+                            ScrollView {
+                                if !viewModel.errorMessage.isEmpty {
+                                    Text(viewModel.errorMessage)
+                                        .foregroundColor(.red)
+                                        .padding(.bottom, 10)
+                                }
+
+                                LazyVStack(spacing: 0) {
+                                    ForEach(filteredChats) { chat in
+                                        ChatCardView(chat: chat)
+                                    }
                                 }
                             }
                         }
+                        .background(Color(.bgc))
+                        .cornerRadius(40)
+                        .frame(width: geometry.size.width, height: geometry.size.height * 2)
+                        .shadow(color: .sdc, radius: 10)
                     }
-                    .background(Color(.bgc))
-                    .cornerRadius(40)
-                    .frame( width:geometry.size.width * 1,height: geometry.size.height * 2)
-                    .shadow(color: .sdc, radius:10)
                 }
-                .background(.appbar)
-               // .ignoresSafeArea(edges: .bottom)
+                .blur(radius: isDrawerOpen ? 8 : 0)
+                // 🔒 Background blur + close on tap
+                if isDrawerOpen {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation{
+                                isDrawerOpen = false
+                            }
+                        }
+
+                    SideDrawerView(
+                        isOpen: $isDrawerOpen,
+                        onSettings: { print("⚙️ Settings") },
+                        onEditProfile: { withAnimation{appRouter.currentPage = .profileEdit(isFromSignUp: false)}},//rememder this route
+                        onExplore: {
+                            withAnimation {
+                                appRouter.goToExplore()
+                                isDrawerOpen = false
+                            }
+                        },
+
+                        onNotification: { print("🔔 Notification") },
+                        onLogout: {
+                            UserSession.shared.clear()
+                            isDrawerOpen = false
+                        },
+                        onExit: {
+                            exit(0) // not recommended in real iOS
+                        }
+                    )
+                    .transition(.move(edge: .leading))
+                }
+            }
+            .background(.appbar)
+            .task {
+                await viewModel.fetchChats()
             }
         }
     }
@@ -49,7 +87,7 @@ struct HomeView: View {
     private var topBar: some View {
         HStack {
             Button {
-                // Menu action
+                isDrawerOpen.toggle()
             } label: {
                 Image(systemName: "line.3.horizontal")
                     .font(.title.bold())
@@ -60,13 +98,12 @@ struct HomeView: View {
 
             Text("Chats")
                 .font(.title.bold())
-                .fontWeight(.semibold)
                 .foregroundColor(.white)
 
             Spacer()
 
             Button {
-                // Search icon action
+                // Profile or settings icon
             } label: {
                 Image(systemName: "person.crop.circle")
                     .font(.title.bold())
@@ -76,10 +113,9 @@ struct HomeView: View {
         .padding(.bottom)
         .padding(.horizontal)
         .background(.appbar)
-     
     }
 
-    // MARK: - Search
+    // MARK: - Search Bar
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass")
@@ -87,7 +123,6 @@ struct HomeView: View {
 
             TextField("Search", text: $searchText)
                 .foregroundColor(.white)
-            
         }
         .padding(12)
         .background(Color(.fieldT))
@@ -95,27 +130,6 @@ struct HomeView: View {
         .padding(.horizontal)
         .padding(.vertical, 4)
     }
-    
-    // Utils/RoundedCorner.swift
-
- 
-
-    struct RoundedCorner: Shape {
-        var radius: CGFloat = 20
-        var corners: UIRectCorner = [.topLeft, .topRight]
-
-        func path(in rect: CGRect) -> Path {
-            let path = UIBezierPath(
-                roundedRect: rect,
-                byRoundingCorners: corners,
-                cornerRadii: CGSize(width: radius, height: radius)
-            )
-            return Path(path.cgPath)
-        }
-    }
-
-
-
 
     // MARK: - Filtered Chats
     private var filteredChats: [ChatModel] {
@@ -128,7 +142,10 @@ struct HomeView: View {
         }
     }
 }
+
 #Preview("Home View - Light Mode") {
     HomeView()
         .preferredColorScheme(.dark)
+        .environmentObject(UserSession.shared)
+        .environmentObject(AppRouter())
 }

@@ -1,3 +1,11 @@
+//
+//  RequestViewModel.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/26/25.
+//
+
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
@@ -92,4 +100,91 @@ class RequestViewModel: ObservableObject {
 
         isLoading = false
     }
+    
+    
+    
+    func acceptRequest(currentUserId: String, from senderId: String) async {
+        isLoading = true
+        errorMessage = ""
+
+        let chatData: [String: Any] = [
+            "participants": [currentUserId, senderId],
+            "lastMessage": "",
+            "timeStamp": Timestamp(date: Date()),
+            "unreadCount": 0,
+            "userName": "", // fill if needed
+            "profileImageURL": "" // optional
+        ]
+
+        do {
+            // 1. Create new chat
+            try await db.collection("chats").addDocument(data: chatData)
+
+            // 2. Delete the request
+            let snapshot = try await db.collection("requests")
+                .whereField("senderId", isEqualTo: senderId)
+                .whereField("receiverId", isEqualTo: currentUserId)
+                .getDocuments()
+
+            for doc in snapshot.documents {
+                try await doc.reference.delete()
+            }
+
+            status = .accepted
+        } catch {
+            errorMessage = "Accept failed: \(error.localizedDescription)"
+        }
+
+        isLoading = false
+    }
+
+    
+    
+    func declineRequest(currentUserId: String, from senderId: String) async {
+        isLoading = true
+        errorMessage = ""
+
+        do {
+            let snapshot = try await db.collection("requests")
+                .whereField("senderId", isEqualTo: senderId)
+                .whereField("receiverId", isEqualTo: currentUserId)
+                .getDocuments()
+
+            for doc in snapshot.documents {
+                try await doc.reference.delete()
+            }
+
+            status = .none
+        } catch {
+            errorMessage = "Decline failed: \(error.localizedDescription)"
+        }
+
+        isLoading = false
+    }
+    
+    
+    func cancelRequest(currentUserId: String, to receiverId: String) async {
+        isLoading = true
+        errorMessage = ""
+
+        do {
+            let snapshot = try await db.collection("requests")
+                .whereField("senderId", isEqualTo: currentUserId)
+                .whereField("receiverId", isEqualTo: receiverId)
+                .getDocuments()
+
+            for doc in snapshot.documents {
+                try await doc.reference.delete()
+            }
+
+            status = .none
+            print("✅ Request cancelled")
+        } catch {
+            errorMessage = "Cancel failed: \(error.localizedDescription)"
+        }
+
+        isLoading = false
+    }
+
+
 }

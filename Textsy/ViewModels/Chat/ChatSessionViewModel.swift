@@ -1,3 +1,11 @@
+//
+//  ChatSessionViewModel.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/26/25.
+//
+
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth

@@ -1,3 +1,11 @@
+//
+//  NoConnectionView.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/25/25.
+//
+
+
 import SwiftUI
 
 struct NoConnectionView: View {

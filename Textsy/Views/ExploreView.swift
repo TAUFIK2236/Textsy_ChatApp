@@ -1,103 +1,149 @@
 import SwiftUI
 
 struct ExploreView: View {
-    // Sample users for preview/demo purposes
-    let users: [UserModel] = [
-        UserModel([
-            "name": "Alice",
-            "age": 22,
-            "bio": "Loves coffee & books",
-            "location": "NY",
-            "profileImageUrl": ""
-        ]),
-        UserModel([
-            "name": "Jake",
-            "age": 25,
-            "bio": "Gym & gaming",
-            "location": "LA",
-            "profileImageUrl": ""
-        ])
-    ]
+    @StateObject private var viewModel = ExploreViewModel()
+    @EnvironmentObject var session: UserSession
+    @State private var selectedUser: UserModel? = nil
+    @EnvironmentObject var appRouter: AppRouter
+    var isFirstTime: Bool = false                    //ProfileEdit and Drawer identify  Flag
+    @State private var isDrawerOpen: Bool = false
 
+    
+    
     let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
     ]
-
+    
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(users, id: \.name) { user in
-                        Button {
-                            // Navigation placeholder
-                        } label: {
-                            UserCardView(user: user)
-                        }
+            VStack{
+                if isFirstTime{
+                    FloatingButton(icon:"arrow.right.to.line", backgroundColor:.blue){
+                        appRouter.goToHome()
                     }
+                }else{
+                    topBar(isDrawerOpen: $isDrawerOpen)
                 }
-                .padding()
+                
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(viewModel.users) { user in
+                            Button {
+                                appRouter.goToUserProfile(id: user.id)
+                                // selectedUser = user
+                            } label: {
+                                UserCardView(user: user)
+                            }
+                        }
+                        
+                    }
+                    
+                    .padding()
+                }
+
+
+            }.background(Color(.bgc))
+            .task {
+                await viewModel.fetchOtherUsers(currentUserId: session.uid)
             }
-            .background(Color(.bgc))
-            .navigationTitle("Discover")
-            .navigationBarTitleDisplayMode(.inline)
+            
         }
     }
+    
 }
 
-struct UserCardView: View {
-    let user: UserModel
-
-    var body: some View {
-        VStack(spacing: 8) {
-            profileImageView
-                .frame(height: 150)
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .cornerRadius(20)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(user.name)
-                    .foregroundColor(.white)
-                    .font(.headline)
-
-                Text("\(user.age) • \(user.bio)")
-                    .foregroundColor(.gray)
-                    .font(.subheadline)
-                    .lineLimit(1)
-            }
-            .padding(.horizontal, 8)
-            .padding(.bottom, 10)
+private func topBar(isDrawerOpen: Binding<Bool>) -> some View {
+    HStack {
+        Button {
+            isDrawerOpen.wrappedValue.toggle()
+        } label: {
+            Image(systemName: "line.3.horizontal")
+                .font(.title.bold())
+                .foregroundColor(.white)
         }
-        .background(Color(.fieldT))
-        .cornerRadius(20)
-        .shadow(color: .sdc.opacity(0.2), radius: 5, x: 0, y: 3)
-    }
 
-    private var profileImageView: some View {
-        if let urlStr = user.profileImageUrl,
-           let url = URL(string: urlStr),
-           !urlStr.isEmpty {
-            return AnyView(
-                AsyncImage(url: url) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
+        Spacer()
+
+        Text("Explore")
+            .font(.title.bold())
+            .foregroundColor(.white)
+
+        Spacer()
+
+        Image(systemName: "person.crop.circle")
+            .font(.title.bold())
+            .foregroundColor(.bgc)
+//        Button {
+//            // Future: Profile or settings
+//        } label: {
+//            Image(systemName: "person.crop.circle")
+//                .font(.title.bold())
+//                .foregroundColor(.white)
+//        }
+    }
+    .padding(.bottom)
+    .padding(.horizontal)
+    .background(Color.bgc)
+}
+
+
+    struct UserCardView: View {
+        let user: UserModel
+        
+        var body: some View {
+            VStack(spacing: 8) {
+                profileImageView
+                    .frame(height: 150)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .cornerRadius(20)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(user.name)
+                        .foregroundColor(.white)
+                        .font(.headline)
+                    
+                    Text("\(user.age) • \(user.bio)")
+                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 10)
+            }
+            .background(Color(.fieldT))
+            .cornerRadius(20)
+            .shadow(color: .sdc.opacity(0.2), radius: 5, x: 0, y: 3)
+        }
+        
+        private var profileImageView: some View {
+            if let urlStr = user.profileImageUrl,
+               let url = URL(string: urlStr),
+               !urlStr.isEmpty {
+                return AnyView(
+                    AsyncImage(url: url) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        Image("profile")
+                            .resizable()
+                            .scaledToFill()
+                    }
+                )
+            } else {
+                return AnyView(
                     Image("profile")
                         .resizable()
                         .scaledToFill()
-                }
-            )
-        } else {
-            return AnyView(
-                Image("profile")
-                    .resizable()
-                    .scaledToFill()
-            )
+                )
+            }
         }
     }
-}
 
 #Preview("ExploreView - Dark Mode") {
     ExploreView()
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
+        .environmentObject(UserSession.shared)
+
 }
+

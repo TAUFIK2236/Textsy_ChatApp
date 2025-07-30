@@ -7,14 +7,22 @@
 
 
 import SwiftUI
+import Foundation
 
 struct ChatView: View {
     @State private var messageText = ""
-    @State private var messages: [ChatBubbleModel] = sampleMessages
+
+    @StateObject private var viewModel = ChatSessionViewModel()
+    @EnvironmentObject var session : UserSession
+    let userId: String
+    
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                task{
+                    await viewModel.fetchMessages(chatId: userId)
+                }
                 // Custom Top Bar
                 HStack {
                     Button(action: {
@@ -56,8 +64,10 @@ struct ChatView: View {
                 // Messages
                 ScrollView {
                     LazyVStack(spacing: 10) {
-                        ForEach(messages) { msg in
-                            ChatBubble(message: msg)
+                        ForEach(viewModel.messages) { msg in
+                            ChatBubble(message: ChatBubbleModel(text: msg.text, isMe: msg.senderId == session.uid, time: formatDate(msg.timestamp)
+                                
+                            ))
                         }
                     }
                     .padding(.horizontal)
@@ -83,6 +93,11 @@ struct ChatView: View {
                             .foregroundColor(.white)
                     }
                     Button(action: {
+                        Task {
+                            await viewModel.sendMessage(chatId: userId, text: messageText)
+                            messageText = "" // clear field
+                            await viewModel.fetchMessages(chatId: userId) // reload messages
+                        }
                         // TODO: Send message
                     }) {
                         Image(systemName: "paperplane.fill")
@@ -100,13 +115,23 @@ struct ChatView: View {
             }
         }
     }
+    
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
 }
 
 
 #Preview("ChatView - Dark Mode") {
-    ChatView()
+    ChatView(userId: "sampleUser123")
+        .environmentObject(UserSession.shared)
         .preferredColorScheme(.dark)
 }
+
 
 
 
@@ -119,13 +144,13 @@ struct ChatBubbleModel: Identifiable {
     let time: String
 }
 
-let sampleMessages: [ChatBubbleModel] = [
-    .init(text: "Got job", isMe: false, time: "3:31 PM"),
-    .init(text: "❤️", isMe: false, time: "3:31 PM"),
-    .init(text: "Josffffffffffs  gggggg ggggggggggggggg hhhhhhhhhhhhh", isMe: true, time: "3:32 PM"),
-    .init(text: "Perfect", isMe: true, time: "3:45 PM"),
-    .init(text: "Apply kor", isMe: false, time: "5:01 PM"),
-]
+//let sampleMessages: [ChatBubbleModel] = [
+//    .init(text: "Got job", isMe: false, time: "3:31 PM"),
+//    .init(text: "❤️", isMe: false, time: "3:31 PM"),
+//    .init(text: "Josffffffffffs  gggggg ggggggggggggggg hhhhhhhhhhhhh", isMe: true, time: "3:32 PM"),
+//    .init(text: "Perfect", isMe: true, time: "3:45 PM"),
+//    .init(text: "Apply kor", isMe: false, time: "5:01 PM"),
+//]
 
 
 

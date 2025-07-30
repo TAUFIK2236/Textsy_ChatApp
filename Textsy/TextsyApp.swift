@@ -10,8 +10,10 @@ import FirebaseCore
 
 @main
 struct TextsyApp: App {
-    @StateObject var router = AppRouter.shared
-    @StateObject var session = UserSession.shared
+  //  @StateObject var router = AppRouter.shared
+      @StateObject var session = UserSession.shared
+    @StateObject var appRouter = AppRouter()
+
 
     init() {
         FirebaseApp.configure()
@@ -20,8 +22,9 @@ struct TextsyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(router)
+            SplashView()
+          //  RootView()
+                .environmentObject(appRouter)
                 .environmentObject(session)
         }
     }

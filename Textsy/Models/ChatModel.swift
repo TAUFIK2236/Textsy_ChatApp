@@ -1,3 +1,11 @@
+//
+//  ChatModel.swift
+//  Textsy
+//
+//  Created by Anika Tabasum on 7/25/25.
+//
+
+
 import Foundation
 import FirebaseFirestore
 

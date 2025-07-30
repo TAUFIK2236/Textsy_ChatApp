@@ -2,11 +2,16 @@ import SwiftUI
 import PhotosUI
 
 struct ProfileEditView: View {
+    let isFromSignUp: Bool
+    
     @State private var name = ""
     @State private var age = ""
     @State private var location = ""
     @State private var bio = ""
     @State private var profileImage: Image = Image("profile")
+    @StateObject private var viewModel = UserProfileViewModel()
+    @EnvironmentObject var session: UserSession
+    @EnvironmentObject var appRouter : AppRouter
 
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
@@ -49,7 +54,41 @@ struct ProfileEditView: View {
 
                         // MARK: - Save Button
                         Button(action: {
-                            // Placeholder: No logic here
+                            guard
+                                !name.isEmpty,
+                                let ageInt = Int(age),
+                                !location.isEmpty,
+                                !bio.isEmpty
+                            else {
+                                print("dont keep any thing Empty")
+                                return
+                            }
+
+                            Task {
+                                await viewModel.saveUserProfile(
+                                    name: name,
+                                    age: ageInt,
+                                    location: location,
+                                    bio: bio,
+                                    image: inputImage
+                                )
+
+                                // ✅ Update session data
+                                session.name = name
+                                session.age = ageInt
+                                session.location = location
+                                session.bio = bio
+
+                                // ✅ Navigate to explore
+                                withAnimation {
+                                    if isFromSignUp{
+                                        appRouter.currentPage = .exploraFirstTime
+                                    }else{
+                                        appRouter.currentPage = .home
+                                    }
+                               
+                                }
+                            }
                         }) {
                             Text("Save Changes")
                                 .frame(maxWidth: .infinity)
@@ -101,9 +140,14 @@ struct ProfileEditView: View {
 
 // MARK: - Preview
 #Preview("Profile View - Clean") {
-    ProfileEditView()
+    ProfileEditView( isFromSignUp:true)
         .preferredColorScheme(.dark)
 }
+
+
+
+
+
 
 // MARK: - Image Picker
 struct ImagePicker: UIViewControllerRepresentable {

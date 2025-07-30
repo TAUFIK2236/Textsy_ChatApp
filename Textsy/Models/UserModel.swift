@@ -1,8 +1,11 @@
+
+
+
 import Foundation
 import FirebaseFirestore
 
 // 🧍‍♀️ A single user's info (from Firestore)
-struct UserModel: Identifiable, Codable {
+struct UserModel: Identifiable, Codable, Hashable {
     var id: String // 📄 Firestore doc ID
     var name: String
     var age: Int
@@ -28,6 +31,17 @@ struct UserModel: Identifiable, Codable {
         self.bio = bio
         self.profileImageUrl = data["profileImageUrl"] as? String // optional
     }
+    
+    // ✅ Manual init so we can create UserModel directly (not from Firestore)
+    init(id: String, name: String, age: Int, location: String, bio: String, profileImageUrl: String?) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.location = location
+        self.bio = bio
+        self.profileImageUrl = profileImageUrl
+    }
+
 
     // ✅ Convert this model to a dictionary for saving to Firestore
     var asDictionary: [String: Any] {
