@@ -1,121 +1,186 @@
 import SwiftUI
+import Firebase
 
 struct NotificationView: View {
-    // Sample requests for UI demo
-    let requests: [MockRequest] = [
-        MockRequest(
-            id: "u1",
-            name: "Anika",
-            age: 21,
-            location: "Brooklyn, NY",
-            bio: "Designer • Coffee lover",
-            profileImageUrl: nil
-        ),
-        MockRequest(
-            id: "u2",
-            name: "Samir",
-            age: 25,
-            location: "Queens, NY",
-            bio: "Traveler • Code ninja",
-            profileImageUrl: nil
-        )
-    ]
+    @State private var isDrawerOpen = false
+    @EnvironmentObject var appRouter: AppRouter
+    @EnvironmentObject var session: UserSession
+    @StateObject var requestVM = RequestViewModel()
+    let chatVM = ChatSessionViewModel()
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 15) {
-                    ForEach(requests) { request in
-                        HStack(spacing: 12) {
-                            // Profile Image
-                            profileImage(for: request)
-                                .frame(width: 50, height: 50)
-                                .clipShape(Circle())
-
-                            // Name & Subtitle
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(request.name)
-                                    .foregroundColor(.white)
-                                    .font(.body.bold())
-
-                                Text("requested to chat.")
-                                    .foregroundColor(.gray)
-                                    .font(.caption)
-                            }
-
-                            Spacer()
-
-                            // Confirm Button
-                            Button("Accept") {
-                                // Placeholder action
-                            }
-                            .font(.body.bold())
+        ZStack {
+            VStack(spacing: 20) {
+                // 🔝 Top bar
+                HStack {
+                    Button {
+                        isDrawerOpen.toggle()
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.title.bold())
                             .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-
-                            // Delete Button
-                            Button("Decline") {
-                                // Placeholder action
-                            }
-                           // .foregroundColor(.white.opacity(0.7))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.red)
-                            .cornerRadius(8)
-
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(Color(.fieldT))
-                        .cornerRadius(12)
+                            .padding(10)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
+
+                    Spacer()
+
+                    Text("Notifications")
+                        .font(.title.bold())
+                        .foregroundColor(.white)
+
+                    Spacer()
+                    Spacer().frame(width: 44)
                 }
-                .padding()
+                .padding(.horizontal)
+
+                ScrollView {
+                    LazyVStack(spacing: 15) {
+                        ForEach(requestVM.incomingRequests) { request in
+                            HStack(spacing: 12) {
+                                profileImage(for: request)
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                                    .onTapGesture {
+                                        appRouter.currentPage = .userProfile(userId: request.senderId)
+                                    }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(request.name)
+                                        .foregroundColor(.white)
+                                        .font(.body.bold())
+
+                                    Text("requested to chat.")
+                                        .foregroundColor(.gray)
+                                        .font(.caption)
+                                }
+
+                                Spacer()
+
+                                Button("Say Hi") {
+                                    Task {
+                                        await sayHi(to: request)
+                                    }
+                                }
+                                .font(.body.bold())
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+
+                                Button("Decline") {
+                                    Task {
+                                        await decline(request: request)
+                                    }
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 10)
+                            .background(Color(.fieldT))
+                            .cornerRadius(16)
+                        }
+                    }
+                    .padding()
+                }
             }
+            .padding(.top)
             .background(Color(.bgc))
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
+            .blur(radius: isDrawerOpen ? 8 : 0)
+            .onAppear {
+                requestVM.listenForIncomingRequests(for: session.uid)
+            }
+
+            // Drawer
+            if isDrawerOpen {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation {
+                            isDrawerOpen = false
+                        }
+                    }
+
+                SideDrawerView(
+                    isOpen: $isDrawerOpen,
+                    currentPage: .notifications,
+                    goTo: { page in
+                        withAnimation {
+                            appRouter.currentPage = page
+                            isDrawerOpen = false
+                        }
+                    },
+                    onLogout: {
+                        session.clear()
+                        isDrawerOpen = false
+                    },
+                    onExit: {
+                        exit(0)
+                    }
+                )
+                .transition(.move(edge: .leading))
+            }
         }
     }
 
-    // MARK: - Profile Image
-    private func profileImage(for request: MockRequest) -> some View {
+    // MARK: - Say Hi Logic
+    func sayHi(to request: RequestModel) async {
+        let myId = session.uid
+        let otherId = request.senderId
+        let chatId = [myId, otherId].sorted().joined(separator: "_")
+
+        // 1. Accept request
+        await requestVM.acceptRequest(currentUserId: myId, from: otherId)
+
+        // 2. Create chat
+        await chatVM.createChatIfNotExists(
+            chatId: chatId,
+            user1Id: myId,
+            user2Id: otherId,
+            user2Name: request.name,
+            user2Image: request.profileImageUrl ?? ""
+        )
+
+        // 3. Send "Hi" message
+        await chatVM.sendMessage(chatId: chatId, text: "Hi, how are you?")
+    }
+
+    func decline(request: RequestModel) async {
+        await requestVM.declineRequest(currentUserId: session.uid, from: request.senderId)
+    }
+
+    // MARK: - Async image with fallback
+    private func profileImage(for request: RequestModel) -> some View {
         if let urlStr = request.profileImageUrl,
-           let url = URL(string: urlStr),
-           !urlStr.isEmpty {
+           !urlStr.trimmingCharacters(in: .whitespaces).isEmpty,
+           let url = URL(string: urlStr) {
             return AnyView(
                 AsyncImage(url: url) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    Image("Profile")
-                        .resizable().scaledToFill()
+                    Image("Profile").resizable().scaledToFill()
                 }
             )
         } else {
             return AnyView(
                 Image("profile")
-                    .resizable().scaledToFill()
+                    .resizable()
+                    .scaledToFill()
             )
         }
     }
 }
 
 // MARK: - Preview
-#Preview("Notification View – Clean") {
+#Preview("Notification View – Live") {
     NotificationView()
-        .preferredColorScheme(.light)
-}
-
-// MARK: - Mock Data Model
-struct MockRequest: Identifiable {
-    let id: String
-    let name: String
-    let age: Int
-    let location: String
-    let bio: String
-    let profileImageUrl: String?
+        .environmentObject(UserSession.shared)
+        .environmentObject(AppRouter())
+        .preferredColorScheme(.dark)
 }

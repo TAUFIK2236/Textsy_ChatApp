@@ -17,11 +17,17 @@ struct ExploreView: View {
     
     var body: some View {
         NavigationStack {
+            ZStack{
             VStack{
                 if isFirstTime{
+                            Text("Profile")
+                                .font(.title.bold())
+                                .foregroundColor(.white)
+
                     FloatingButton(icon:"arrow.right.to.line", backgroundColor:.blue){
                         appRouter.goToHome()
                     }
+                    
                 }else{
                     topBar(isDrawerOpen: $isDrawerOpen)
                 }
@@ -43,15 +49,45 @@ struct ExploreView: View {
                 }
 
 
-            }.background(Color(.bgc))
+            }                .blur(radius: isDrawerOpen ? 8 : 0)
+            // 🔒 Background blur + close on tap
+            if isDrawerOpen {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation{
+                            isDrawerOpen = false
+                        }
+                    }
+
+                SideDrawerView(
+                    isOpen: $isDrawerOpen,
+                    currentPage: appRouter.currentPage,
+                    goTo:{
+                        page in withAnimation {
+                            appRouter.currentPage = page
+                            isDrawerOpen = false
+                        }
+                    },
+                    onLogout: {
+                        UserSession.shared.clear()
+                        isDrawerOpen = false
+                    },
+                    onExit:{ exit(0)
+                    }
+                )
+                .transition(.move(edge: .leading))
+            }
+        }
+        .background(.appbar)
             .task {
                 await viewModel.fetchOtherUsers(currentUserId: session.uid)
             }
             
         }
     }
-    
 }
+
 
 private func topBar(isDrawerOpen: Binding<Bool>) -> some View {
     HStack {

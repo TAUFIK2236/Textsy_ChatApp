@@ -55,22 +55,18 @@ struct HomeView: View {
 
                     SideDrawerView(
                         isOpen: $isDrawerOpen,
-                        onSettings: { print("⚙️ Settings") },
-                        onEditProfile: { withAnimation{appRouter.currentPage = .profileEdit(isFromSignUp: false)}},//rememder this route
-                        onExplore: {
-                            withAnimation {
-                                appRouter.goToExplore()
+                        currentPage: appRouter.currentPage,
+                        goTo:{
+                            page in withAnimation {
+                                appRouter.currentPage = page
                                 isDrawerOpen = false
                             }
                         },
-
-                        onNotification: { print("🔔 Notification") },
                         onLogout: {
                             UserSession.shared.clear()
                             isDrawerOpen = false
                         },
-                        onExit: {
-                            exit(0) // not recommended in real iOS
+                        onExit:{ exit(0)
                         }
                     )
                     .transition(.move(edge: .leading))

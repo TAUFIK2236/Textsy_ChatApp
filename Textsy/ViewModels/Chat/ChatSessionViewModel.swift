@@ -57,4 +57,24 @@ class ChatSessionViewModel: ObservableObject {
             errorMessage = "Failed to send message: \(error.localizedDescription)"
         }
     }
+    
+    
+    func createChatIfNotExists(chatId: String, user1Id: String, user2Id: String, user2Name: String, user2Image: String) async {
+        let docRef = db.collection("chats").document(chatId)
+
+        let exists = try? await docRef.getDocument().exists
+        if exists == false {
+            try? await docRef.setData([
+                "chatId": chatId,
+                "participants": [user1Id, user2Id],
+                "userId": user2Id,
+                "userName": user2Name,
+                "profileImageURL": user2Image,
+                "lastMessage": "Hi, how are you?",
+                "timeStamp": Timestamp(date: Date())
+            ])
+        }
+    }
+
+
 }

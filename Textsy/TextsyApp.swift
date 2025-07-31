@@ -10,8 +10,9 @@ import FirebaseCore
 
 @main
 struct TextsyApp: App {
-  //  @StateObject var router = AppRouter.shared
-      @StateObject var session = UserSession.shared
+    
+    @AppStorage("isDarkMode") private var isDarkMode = true
+    @StateObject var session = UserSession.shared
     @StateObject var appRouter = AppRouter()
 
 
@@ -23,7 +24,7 @@ struct TextsyApp: App {
     var body: some Scene {
         WindowGroup {
             SplashView()
-          //  RootView()
+                .preferredColorScheme(isDarkMode ? .dark : . light)
                 .environmentObject(appRouter)
                 .environmentObject(session)
         }

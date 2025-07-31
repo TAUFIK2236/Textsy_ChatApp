@@ -65,8 +65,19 @@ struct MainAppRouterView: View {
             ChatView(userId: userId)
                 .environmentObject(appRouter)
                 .environmentObject(session)
+            
+            
+        case .settingss:
+            SettingView()
+                .environmentObject(appRouter)
+                .environmentObject(session)
+            
 
 
+        case .notifications:
+            NotificationView()
+                .environmentObject(appRouter)
+                .environmentObject(session)
         }
     }
     private func routeBasedOnProfile() {

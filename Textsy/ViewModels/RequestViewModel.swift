@@ -185,6 +185,23 @@ class RequestViewModel: ObservableObject {
 
         isLoading = false
     }
+    
+    //----------------------------------------------------for notificationview
+    @Published var incomingRequests: [RequestModel] = []
+
+    func listenForIncomingRequests(for userId: String) {
+        db.collection("requests")
+            .whereField("receiverId", isEqualTo: userId)
+            .order(by: "timestamp", descending: true)
+            .addSnapshotListener { snapshot, error in
+                guard let docs = snapshot?.documents else { return }
+
+                self.incomingRequests = docs.compactMap { doc in
+                    RequestModel(id: doc.documentID, data: doc.data())
+                }
+            }
+    }
+
 
 
 }

@@ -89,17 +89,7 @@ struct ChatCardView: View {
 //    .frame(width: 500, height: 70)
 //    .preferredColorScheme(.dark)
 //}
-//#Preview("Narrow") {
-//    ChatCardView(chat: ChatModel(
-//        id: "2",
-//        userName: "Jonathan Smith",
-//        lastMessage: "I'll send the doc tomorrow.",
-//        timeStamp: Date(),
-//        profileImageURL: "https://randomuser.me/api/portraits/men/2.jpg",
-//        unreadCount: 0
-//    ))
-//    .frame(width: 500, height: 70)
-//}
+// i
 
 //#Preview("Wide") {
 //    ChatCardView(chat: ...)

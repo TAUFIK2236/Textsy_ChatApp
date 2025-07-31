@@ -12,15 +12,24 @@ struct ProfileEditView: View {
     @StateObject private var viewModel = UserProfileViewModel()
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var appRouter : AppRouter
-
+    @State private var isDrawerOpen: Bool = false
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
-
+    
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
+             ZStack{
                 ScrollView {
                     VStack(spacing: 20) {
+                        if isFromSignUp{
+                            Text("Profile")
+                                .font(.title.bold())
+                                .foregroundColor(.white)
+                        }else{
+                            topBar(isDrawerOpen: $isDrawerOpen)
+                        }
+              
                         // MARK: - Profile Picture
                         ZStack(alignment: .bottomTrailing) {
                             profileImage
@@ -34,7 +43,7 @@ struct ProfileEditView: View {
                                 .onTapGesture {
                                     showingImagePicker = true
                                 }
-
+                            
                             Image(systemName: "pencil.circle.fill")
                                 .foregroundColor(.blue)
                                 .background(Color.white)
@@ -42,7 +51,7 @@ struct ProfileEditView: View {
                                 .offset(x: -20, y: -10)
                         }
                         .padding(.top, 30)
-
+                        
                         // MARK: - Editable Fields
                         VStack(spacing: 16) {
                             profileField(title: "Name", text: $name)
@@ -51,7 +60,7 @@ struct ProfileEditView: View {
                             profileField(title: "Bio", text: $bio)
                         }
                         .padding(.horizontal, geometry.size.width * 0.08)
-
+                        
                         // MARK: - Save Button
                         Button(action: {
                             guard
@@ -63,7 +72,7 @@ struct ProfileEditView: View {
                                 print("dont keep any thing Empty")
                                 return
                             }
-
+                            
                             Task {
                                 await viewModel.saveUserProfile(
                                     name: name,
@@ -72,13 +81,13 @@ struct ProfileEditView: View {
                                     bio: bio,
                                     image: inputImage
                                 )
-
+                                
                                 // ✅ Update session data
                                 session.name = name
                                 session.age = ageInt
                                 session.location = location
                                 session.bio = bio
-
+                                
                                 // ✅ Navigate to explore
                                 withAnimation {
                                     if isFromSignUp{
@@ -86,7 +95,7 @@ struct ProfileEditView: View {
                                     }else{
                                         appRouter.currentPage = .home
                                     }
-                               
+                                    
                                 }
                             }
                         }) {
@@ -99,22 +108,47 @@ struct ProfileEditView: View {
                         }
                         .padding(.top, 20)
                         .padding(.horizontal, geometry.size.width * 0.08)
-
+                        
                         Spacer()
                     }
                     .padding(.bottom, 40)
                 }
                 .background(Color(.bgc))
             }
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showingImagePicker) {
-                ImagePicker(image: $inputImage)
-            }
+            
+            .sheet(isPresented: $showingImagePicker) {ImagePicker(image: $inputImage)}
             .onChange(of: inputImage) { _ in loadImage() }
+                
+                if isDrawerOpen {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation{
+                                isDrawerOpen = false
+                            }
+                        }
+
+                    SideDrawerView(
+                        isOpen: $isDrawerOpen,
+                        currentPage: appRouter.currentPage,
+                        goTo:{
+                            page in withAnimation {
+                                appRouter.currentPage = page
+                                isDrawerOpen = false
+                            }
+                        },
+                        onLogout: {
+                            UserSession.shared.clear()
+                            isDrawerOpen = false
+                        },
+                        onExit:{ exit(0)
+                        }
+                    )
+                    .transition(.move(edge: .leading))
+                }
         }
     }
-
+}
     // MARK: - Field UI
     private func profileField(title: String, text: Binding<String>, keyboard: UIKeyboardType = .default) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -145,7 +179,39 @@ struct ProfileEditView: View {
 }
 
 
+private func topBar(isDrawerOpen: Binding<Bool>) -> some View {
+    HStack {
+        Button {
+            isDrawerOpen.wrappedValue.toggle()
+        } label: {
+            Image(systemName: "line.3.horizontal")
+                .font(.title.bold())
+                .foregroundColor(.white)
+        }
 
+        Spacer()
+
+        Text("Profile")
+            .font(.title.bold())
+            .foregroundColor(.white)
+
+        Spacer()
+
+        Image(systemName: "person.crop.circle")
+            .font(.title.bold())
+            .foregroundColor(.bgc)
+//        Button {
+//            // Future: Profile or settings
+//        } label: {
+//            Image(systemName: "person.crop.circle")
+//                .font(.title.bold())
+//                .foregroundColor(.white)
+//        }
+    }
+    .padding(.bottom)
+    .padding(.horizontal)
+    .background(Color.bgc)
+}
 
 
 
