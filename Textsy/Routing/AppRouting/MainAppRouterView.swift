@@ -6,7 +6,7 @@ import SwiftUI
 struct MainAppRouterView: View {
 
     @EnvironmentObject var appRouter: AppRouter // ✅ Use the shared one
-
+    @StateObject var notificationVM = NotificationViewModel()
     @EnvironmentObject var session: UserSession
 
 
@@ -24,7 +24,12 @@ struct MainAppRouterView: View {
                 } else {
                     appRouter.currentPage = .profileEdit(isFromSignUp: true)
                 }
+                print("👤 Logged in as: \(session.uid)")
+
+                // ✅ Start listening no matter which page we're on!
+                notificationVM.listenForNotifications(for: session.uid)
             }
+
 
             .onChange(of: session.isProfileLoaded, initial: false) { _, _ in
                 routeBasedOnProfile()
@@ -35,20 +40,28 @@ struct MainAppRouterView: View {
 
         
         switch appRouter.currentPage {
+            
         case .home:
             HomeView()
                 .environmentObject(appRouter)
                 .environmentObject(session)
+                .environmentObject(notificationVM)
+                .onAppear {
+                    notificationVM.listenForNotifications(for: session.uid)
+                }
+
 
         case .explore:
             ExploreView(isFirstTime:false)
             .environmentObject(appRouter)
             .environmentObject(session)
+            .environmentObject(notificationVM)
             
         case .exploraFirstTime:
             ExploreView(isFirstTime:true)
                 .environmentObject(appRouter)
                 .environmentObject(session)
+                .environmentObject(notificationVM)
 
         case .profileEdit(let isFromSignUp):
             ProfileEditView(isFromSignUp: isFromSignUp)
@@ -65,6 +78,7 @@ struct MainAppRouterView: View {
             ChatView(userId: userId)
                 .environmentObject(appRouter)
                 .environmentObject(session)
+                .environmentObject(notificationVM)
             
             
         case .settingss:
@@ -78,6 +92,7 @@ struct MainAppRouterView: View {
             NotificationView()
                 .environmentObject(appRouter)
                 .environmentObject(session)
+                .environmentObject(notificationVM)
         }
     }
     private func routeBasedOnProfile() {

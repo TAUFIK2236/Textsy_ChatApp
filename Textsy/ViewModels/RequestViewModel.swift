@@ -94,6 +94,15 @@ class RequestViewModel: ObservableObject {
         do {
             try await db.collection("requests").addDocument(data: request)
             status = .sent
+            await saveNotification(
+                senderId: currentUser.id,
+                senderName: currentUser.name,
+                senderImageUrl: currentUser.profileImageUrl,
+                receiverId: user.id,
+                type: "request",
+                message: "sent you a chat request"
+            )
+
         } catch {
             errorMessage = "❌ Request failed: \(error.localizedDescription)"
         }
@@ -119,6 +128,23 @@ class RequestViewModel: ObservableObject {
         do {
             // 1. Create new chat
             try await db.collection("chats").addDocument(data: chatData)
+            status = .accepted
+            print("📦 Trying to fetch user info for ID: \(currentUserId)")
+            if let userInfo = await fetchCurrentUserInfo(uid: currentUserId) {
+                print("✅ Got user info: \(userInfo.name) — Now saving notification...")
+                await saveNotification(
+                    senderId: currentUserId,
+                    senderName: userInfo.name,
+                    senderImageUrl: userInfo.imageUrl,
+                    receiverId: senderId,
+                    type: "accepted", // or "declined"
+                    message: "accepted your chat request"
+                )
+                print("📤 Notification saved for receiver: \(senderId)")
+            } else {
+                print("❌ Could not fetch user info — no notification saved")
+            }
+
 
             // 2. Delete the request
             let snapshot = try await db.collection("requests")
@@ -153,8 +179,20 @@ class RequestViewModel: ObservableObject {
             for doc in snapshot.documents {
                 try await doc.reference.delete()
             }
+           status = .none
+            
+            if let userInfo = await fetchCurrentUserInfo(uid: currentUserId) {
+                await saveNotification(
+                    senderId: currentUserId,
+                    senderName: userInfo.name,
+                    senderImageUrl: userInfo.imageUrl,
+                    receiverId: senderId,
+                    type: "declined",
+                    message: "declined your chat request"
+                )
+            }
 
-            status = .none
+
         } catch {
             errorMessage = "Decline failed: \(error.localizedDescription)"
         }
@@ -202,6 +240,51 @@ class RequestViewModel: ObservableObject {
             }
     }
 
+    
+    func fetchCurrentUserInfo(uid: String) async -> (name: String, imageUrl: String?)? {
+        do {
+            let doc = try await db.collection("users").document(uid).getDocument()
+            let data = doc.data()
+            let name = data?["name"] as? String ?? ""
+            let image = data?["profileImageUrl"] as? String
+            return (name, image)
+        } catch {
+            print("❌ Failed to fetch user info: \(error.localizedDescription)")
+            return nil
+        }
+    }
 
+
+    
+    
+    
+    
+   //----------------------------------Notification saving func
+    func saveNotification(
+        senderId: String,
+        senderName: String,
+        senderImageUrl: String?,
+        receiverId: String,
+        type: String,
+        message: String
+    ) async {
+        let notification: [String: Any] = [
+            "senderId": senderId,
+            "receiverId": receiverId,
+            "senderName": senderName,
+            "senderImageUrl": senderImageUrl ?? "",
+            "type": type,
+            "message": message,
+            "timestamp": Timestamp(date: Date())
+        ]
+
+        do {
+            try await db.collection("notifications").addDocument(data: notification)
+            print("✅ Notification saved: \(type)")
+        } catch {
+            print("❌ Failed to save notification: \(error.localizedDescription)")
+        }
+    }
 
 }
+

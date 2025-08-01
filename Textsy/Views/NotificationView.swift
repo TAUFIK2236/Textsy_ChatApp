@@ -1,186 +1,178 @@
 import SwiftUI
-import Firebase
 
 struct NotificationView: View {
     @State private var isDrawerOpen = false
     @EnvironmentObject var appRouter: AppRouter
     @EnvironmentObject var session: UserSession
-    @StateObject var requestVM = RequestViewModel()
-    let chatVM = ChatSessionViewModel()
+    @StateObject private var notificationVM = NotificationViewModel()
+    @StateObject private var chatVM = ChatSessionViewModel()
+    @State private var isProcessing: [String: Bool] = [:]
+
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 20) {
-                // 🔝 Top bar
-                HStack {
-                    Button {
-                        isDrawerOpen.toggle()
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.title.bold())
-                            .foregroundColor(.white)
-                            .padding(10)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-
-                    Spacer()
-
-                    Text("Notifications")
+        VStack {
+            // 🔝 Top Bar
+            HStack(alignment: .center){
+                Button {
+                    isDrawerOpen.toggle()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
                         .font(.title.bold())
                         .foregroundColor(.white)
-
-                    Spacer()
-                    Spacer().frame(width: 44)
+                        .padding(10)
                 }
-                .padding(.horizontal)
 
-                ScrollView {
-                    LazyVStack(spacing: 15) {
-                        ForEach(requestVM.incomingRequests) { request in
-                            HStack(spacing: 12) {
-                                profileImage(for: request)
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(Circle())
-                                    .onTapGesture {
-                                        appRouter.currentPage = .userProfile(userId: request.senderId)
-                                    }
+                Spacer()
 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(request.name)
-                                        .foregroundColor(.white)
-                                        .font(.body.bold())
+                Text("Notifications")
+                    .foregroundColor(.white)
+                    .font(.title.bold())
 
-                                    Text("requested to chat.")
-                                        .foregroundColor(.gray)
-                                        .font(.caption)
-                                }
+                Spacer()
+                Spacer()
+            }
+            .padding(.horizontal)
 
-                                Spacer()
-
-                                Button("Say Hi") {
-                                    Task {
-                                        await sayHi(to: request)
-                                    }
-                                }
-                                .font(.body.bold())
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(Color.blue)
-                                .cornerRadius(10)
-
-                                Button("Decline") {
-                                    Task {
-                                        await decline(request: request)
-                                    }
-                                }
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(Color.red)
-                                .cornerRadius(10)
-                            }
-                            .padding(.horizontal)
-                            .padding(.vertical, 10)
-                            .background(Color(.fieldT))
-                            .cornerRadius(16)
+            // 📩 ScrollView of Requests
+            ScrollView {
+                LazyVStack(spacing: 15) {
+                    ForEach(notificationVM.notifications) { notif in
+                        Button(action: {
+                            appRouter.goToUserProfile(id: notif.senderId)
+                        }) {
+                            notificationCard(for: notif)
                         }
                     }
-                    .padding()
                 }
+                .padding()
             }
-            .padding(.top)
             .background(Color(.bgc))
-            .blur(radius: isDrawerOpen ? 8 : 0)
-            .onAppear {
-                requestVM.listenForIncomingRequests(for: session.uid)
+        }
+        .background(Color(.bgc))
+        .onAppear {
+            notificationVM.listenForNotifications(for: session.uid)
+
+        }
+        .overlay(
+            SideDrawerView(
+                isOpen: $isDrawerOpen,
+                currentPage: appRouter.currentPage,
+                goTo: { page in
+                    withAnimation {
+                        appRouter.currentPage = page
+                        isDrawerOpen = false
+                    }
+                },
+                onLogout: {
+                    UserSession.shared.clear()
+                    isDrawerOpen = false
+                },
+                onExit: { exit(0) }
+            )
+            .transition(.move(edge: .leading))
+            .animation(.easeInOut, value: isDrawerOpen)
+            .opacity(isDrawerOpen ? 1 : 0)
+        )
+    }
+
+    // MARK: - Notification Card View
+    private func notificationCard(for notif: NotificationModel) -> some View {
+        HStack(spacing: 12) {
+            profileImage(for: notif.senderImageUrl)
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(notif.senderName)
+                    .foregroundColor(.white)
+                    .font(.body.bold())
+
+                Text(notif.message)
+                    .foregroundColor(.gray)
+                    .font(.caption)
+
+                Text(formatDate(notif.timestamp))
+                    .foregroundColor(.gray)
+                    .font(.caption2)
             }
 
-            // Drawer
-            if isDrawerOpen {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation {
-                            isDrawerOpen = false
-                        }
-                    }
+            Spacer()
 
-                SideDrawerView(
-                    isOpen: $isDrawerOpen,
-                    currentPage: .notifications,
-                    goTo: { page in
-                        withAnimation {
-                            appRouter.currentPage = page
-                            isDrawerOpen = false
+            // Show loading spinner
+            if isProcessing[notif.id] == true {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .frame(width: 20, height: 20)
+            }
+
+            // Show buttons ONLY for "request" type
+            else if notif.type == .request {
+                HStack(spacing: 6) {
+                    Button("Say Hi") {
+                        Task {
+                            isProcessing[notif.id] = true
+                            let chatId = generateChatId(session.uid, notif.senderId)
+                            await notificationVM.sendHiMessage(
+                                to: notif.senderId,
+                                chatId: chatId,
+                                userName: notif.senderName,
+                                userImage: notif.senderImageUrl
+                            )
+                            await notificationVM.markAsResponded(notificationId: notif.id)
+                            isProcessing[notif.id] = false
                         }
-                    },
-                    onLogout: {
-                        session.clear()
-                        isDrawerOpen = false
-                    },
-                    onExit: {
-                        exit(0)
                     }
-                )
-                .transition(.move(edge: .leading))
+                    .font(.body.bold())
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green)
+                    .cornerRadius(8)
+
+                    Button("Decline") {
+                        Task {
+                            isProcessing[notif.id] = true
+                            await notificationVM.deleteNotification(notificationId: notif.id)
+                            isProcessing[notif.id] = false
+                        }
+                    }
+                    .font(.body.bold())
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.red)
+                    .cornerRadius(8)
+                }
             }
         }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.fieldT))
+        .cornerRadius(12)
     }
 
-    // MARK: - Say Hi Logic
-    func sayHi(to request: RequestModel) async {
-        let myId = session.uid
-        let otherId = request.senderId
-        let chatId = [myId, otherId].sorted().joined(separator: "_")
-
-        // 1. Accept request
-        await requestVM.acceptRequest(currentUserId: myId, from: otherId)
-
-        // 2. Create chat
-        await chatVM.createChatIfNotExists(
-            chatId: chatId,
-            user1Id: myId,
-            user2Id: otherId,
-            user2Name: request.name,
-            user2Image: request.profileImageUrl ?? ""
-        )
-
-        // 3. Send "Hi" message
-        await chatVM.sendMessage(chatId: chatId, text: "Hi, how are you?")
-    }
-
-    func decline(request: RequestModel) async {
-        await requestVM.declineRequest(currentUserId: session.uid, from: request.senderId)
-    }
-
-    // MARK: - Async image with fallback
-    private func profileImage(for request: RequestModel) -> some View {
-        if let urlStr = request.profileImageUrl,
-           !urlStr.trimmingCharacters(in: .whitespaces).isEmpty,
-           let url = URL(string: urlStr) {
+    private func profileImage(for urlStr: String?) -> some View {
+        if let urlStr = urlStr, let url = URL(string: urlStr), !urlStr.isEmpty {
             return AnyView(
                 AsyncImage(url: url) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    Image("Profile").resizable().scaledToFill()
+                    Image("profile").resizable().scaledToFill()
                 }
             )
         } else {
-            return AnyView(
-                Image("profile")
-                    .resizable()
-                    .scaledToFill()
-            )
+            return AnyView(Image("profile").resizable().scaledToFill())
         }
     }
-}
 
-// MARK: - Preview
-#Preview("Notification View – Live") {
-    NotificationView()
-        .environmentObject(UserSession.shared)
-        .environmentObject(AppRouter())
-        .preferredColorScheme(.dark)
+    // MARK: - Helpers
+    private func generateChatId(_ uid1: String, _ uid2: String) -> String {
+        return [uid1, uid2].sorted().joined(separator: "_")
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
 }
