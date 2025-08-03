@@ -32,6 +32,9 @@ struct SplashView: View {
                     MainAppRouterView()
                         .environmentObject(appRouter)
                         .environmentObject(session)
+                        .environmentObject(ChatViewModel())
+                        
+
 
                 }
 

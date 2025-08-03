@@ -105,7 +105,7 @@ struct UserProfileView: View {
                                     Task {
                                         await requestVM.sendRequest(to: user, from: UserModel(
                                             id: session.uid,
-                                            name: session.name, // Replace later if needed
+                                            name: session.name, 
                                             age: session.age,
                                             location: session.location,
                                             bio: session.bio,

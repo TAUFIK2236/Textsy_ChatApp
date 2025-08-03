@@ -1,9 +1,9 @@
-// ✅ UPDATED MODELS with senderName and receiverName where needed
+
 
 import Foundation
 import FirebaseFirestore
 
-// 💬 ChatModel: represents a chat preview
+
 struct ChatModel: Identifiable, Codable {
     var id: String
     var userId: String

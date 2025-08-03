@@ -7,8 +7,9 @@ struct MainAppRouterView: View {
 
     @EnvironmentObject var appRouter: AppRouter // ✅ Use the shared one
     @StateObject var notificationVM = NotificationViewModel()
+    @StateObject var chatMV = ChatViewModel()
     @EnvironmentObject var session: UserSession
-
+  //  @EnvironmentObject var chatMV : ChatViewModel
 
 
     
@@ -46,6 +47,7 @@ struct MainAppRouterView: View {
                 .environmentObject(appRouter)
                 .environmentObject(session)
                 .environmentObject(notificationVM)
+                .environmentObject(chatMV)
                 .onAppear {
                     notificationVM.listenForNotifications(for: session.uid)
                 }
@@ -56,13 +58,14 @@ struct MainAppRouterView: View {
             .environmentObject(appRouter)
             .environmentObject(session)
             .environmentObject(notificationVM)
+            .environmentObject(chatMV)
             
         case .exploraFirstTime:
             ExploreView(isFirstTime:true)
                 .environmentObject(appRouter)
                 .environmentObject(session)
                 .environmentObject(notificationVM)
-
+                .environmentObject(chatMV)
         case .profileEdit(let isFromSignUp):
             ProfileEditView(isFromSignUp: isFromSignUp)
                 .environmentObject(appRouter)
@@ -71,14 +74,15 @@ struct MainAppRouterView: View {
             UserProfileWrapperView(userId: userId)
                 .environmentObject(appRouter)
                 .environmentObject(session)
-
+                .environmentObject(chatMV)
 
             
-        case .chat(let userId):
-            ChatView(userId: userId)
+        case .chat(let chatId):
+            ChatView(chatId: chatId)
                 .environmentObject(appRouter)
                 .environmentObject(session)
                 .environmentObject(notificationVM)
+                .environmentObject(chatMV)
             
             
         case .settingss:
@@ -93,6 +97,7 @@ struct MainAppRouterView: View {
                 .environmentObject(appRouter)
                 .environmentObject(session)
                 .environmentObject(notificationVM)
+                .environmentObject(chatMV)
         }
     }
     private func routeBasedOnProfile() {

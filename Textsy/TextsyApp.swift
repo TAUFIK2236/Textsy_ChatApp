@@ -27,6 +27,8 @@ struct TextsyApp: App {
                 .preferredColorScheme(isDarkMode ? .dark : . light)
                 .environmentObject(appRouter)
                 .environmentObject(session)
+                .environmentObject(ChatViewModel())
+
         }
     }
 }

@@ -11,18 +11,18 @@ import Foundation
 
 struct ChatView: View {
     @State private var messageText = ""
+   // @State private var chatId: String? = nil
 
     @StateObject private var viewModel = ChatSessionViewModel()
     @EnvironmentObject var session : UserSession
-    let userId: String
+    let chatId: String
     
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                task{
-                    await viewModel.fetchMessages(chatId: userId)
-                }
+
+
                 // Custom Top Bar
                 HStack {
                     Button(action: {
@@ -39,7 +39,7 @@ struct ChatView: View {
                         .clipShape(Circle())
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Bydani Anika")
+                        Text("")
                             .foregroundColor(.white)
                             .font(.headline.bold())
 
@@ -94,9 +94,9 @@ struct ChatView: View {
                     }
                     Button(action: {
                         Task {
-                            await viewModel.sendMessage(chatId: userId, text: messageText)
+                            await viewModel.sendMessage(chatId: chatId ?? "", text: messageText)
                             messageText = "" // clear field
-                            await viewModel.fetchMessages(chatId: userId) // reload messages
+                            await viewModel.fetchMessages(chatId: chatId) // reload messages
                         }
                         // TODO: Send message
                     }) {
@@ -112,6 +112,12 @@ struct ChatView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 10)
                 .background(Color(.bgc))
+                .onAppear {
+                    Task {
+                        await viewModel.fetchMessages(chatId: chatId)
+                    }
+                }
+                
             }
         }
     }
@@ -127,7 +133,7 @@ struct ChatView: View {
 
 
 #Preview("ChatView - Dark Mode") {
-    ChatView(userId: "sampleUser123")
+    ChatView(chatId: "sampleUser123")
         .environmentObject(UserSession.shared)
         .preferredColorScheme(.dark)
 }

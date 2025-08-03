@@ -28,7 +28,7 @@ struct ChatCardView: View {
                         .font(.headline)
                         .foregroundColor(.color)
 
-                    Text(chat.lastMessage ?? "loading....")
+                    Text(chat.lastMessage ?? "Say Something....")
                         .font(.subheadline)
                         .foregroundColor(.color.opacity(0.7))
                         .lineLimit(1)
