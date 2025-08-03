@@ -1,3 +1,4 @@
+
 //import SwiftUI
 //
 //struct NotificationView: View {
@@ -5,17 +6,12 @@
 //    @EnvironmentObject var appRouter: AppRouter
 //    @EnvironmentObject var session: UserSession
 //    @StateObject private var notificationVM = NotificationViewModel()
-//    @StateObject private var chatVM = ChatSessionViewModel()
 //    @State private var isProcessing: [String: Bool] = [:]
-//
 //
 //    var body: some View {
 //        VStack {
-//            // 🔝 Top Bar
-//            HStack(alignment: .center){
-//                Button {
-//                    isDrawerOpen.toggle()
-//                } label: {
+//            HStack(alignment: .center) {
+//                Button { isDrawerOpen.toggle() } label: {
 //                    Image(systemName: "line.3.horizontal")
 //                        .font(.title.bold())
 //                        .foregroundColor(.white)
@@ -33,7 +29,6 @@
 //            }
 //            .padding(.horizontal)
 //
-//            // 📩 ScrollView of Requests
 //            ScrollView {
 //                LazyVStack(spacing: 15) {
 //                    ForEach(notificationVM.notifications) { notif in
@@ -51,22 +46,13 @@
 //        .background(Color(.bgc))
 //        .onAppear {
 //            notificationVM.listenForNotifications(for: session.uid)
-//
 //        }
 //        .overlay(
 //            SideDrawerView(
 //                isOpen: $isDrawerOpen,
 //                currentPage: appRouter.currentPage,
-//                goTo: { page in
-//                    withAnimation {
-//                        appRouter.currentPage = page
-//                        isDrawerOpen = false
-//                    }
-//                },
-//                onLogout: {
-//                    UserSession.shared.clear()
-//                    isDrawerOpen = false
-//                },
+//                goTo: { page in withAnimation { appRouter.currentPage = page; isDrawerOpen = false } },
+//                onLogout: { UserSession.shared.clear(); isDrawerOpen = false },
 //                onExit: { exit(0) }
 //            )
 //            .transition(.move(edge: .leading))
@@ -75,7 +61,6 @@
 //        )
 //    }
 //
-//    // MARK: - Notification Card View
 //    private func notificationCard(for notif: NotificationModel) -> some View {
 //        HStack(spacing: 12) {
 //            profileImage(for: notif.senderImageUrl)
@@ -98,27 +83,18 @@
 //
 //            Spacer()
 //
-//            // Show loading spinner
 //            if isProcessing[notif.id] == true {
 //                ProgressView()
 //                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
 //                    .frame(width: 20, height: 20)
-//            }
-//
-//            // Show buttons ONLY for "request" type
-//            else if notif.type == .request {
+//            } else if notif.type == .request {
 //                HStack(spacing: 6) {
 //                    Button("Say Hi") {
 //                        Task {
 //                            isProcessing[notif.id] = true
 //                            let chatId = generateChatId(session.uid, notif.senderId)
-//                            await notificationVM.sendHiMessage(
-//                                to: notif.senderId,
-//                                chatId: chatId,
-//                                userName: notif.senderName,
-//                                userImage: notif.senderImageUrl
-//                            )
-//                            await notificationVM.markAsResponded(notificationId: notif.id)
+//                            await notificationVM.sendHiMessage(to: notif.senderId, chatId: chatId, notificationId: <#String#>)
+//                            await notificationVM.markAsResponded(notificationId: notif.id, status: <#String#>)
 //                            isProcessing[notif.id] = false
 //                        }
 //                    }
@@ -165,9 +141,8 @@
 //        }
 //    }
 //
-//    // MARK: - Helpers
 //    private func generateChatId(_ uid1: String, _ uid2: String) -> String {
-//        return [uid1, uid2].sorted().joined(separator: "_")
+//        [uid1, uid2].sorted().joined(separator: "_")
 //    }
 //
 //    private func formatDate(_ date: Date) -> String {
@@ -209,10 +184,10 @@ struct NotificationView: View {
             ScrollView {
                 LazyVStack(spacing: 15) {
                     ForEach(notificationVM.notifications) { notif in
-                        Button(action: {
-                            appRouter.goToUserProfile(id: notif.senderId)
-                        }) {
+                        if notif.status == nil {
                             notificationCard(for: notif)
+                        } else {
+                            resolvedNotificationCard(for: notif)
                         }
                     }
                 }
@@ -270,8 +245,8 @@ struct NotificationView: View {
                         Task {
                             isProcessing[notif.id] = true
                             let chatId = generateChatId(session.uid, notif.senderId)
-                            await notificationVM.sendHiMessage(to: notif.senderId, chatId: chatId)
-                            await notificationVM.markAsResponded(notificationId: notif.id)
+                            await notificationVM.sendHiMessage(to: notif.senderId, chatId: chatId, notificationId: notif.id)
+                            await notificationVM.markAsResponded(notificationId: notif.id, status: "accepted")
                             isProcessing[notif.id] = false
                         }
                     }
@@ -285,7 +260,7 @@ struct NotificationView: View {
                     Button("Decline") {
                         Task {
                             isProcessing[notif.id] = true
-                            await notificationVM.deleteNotification(notificationId: notif.id)
+                            await notificationVM.markAsResponded(notificationId: notif.id, status: "declined")
                             isProcessing[notif.id] = false
                         }
                     }
@@ -297,6 +272,37 @@ struct NotificationView: View {
                     .cornerRadius(8)
                 }
             }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.fieldT))
+        .cornerRadius(12)
+    }
+
+    private func resolvedNotificationCard(for notif: NotificationModel) -> some View {
+        HStack(spacing: 12) {
+            profileImage(for: notif.senderImageUrl)
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(notif.senderName)
+                    .foregroundColor(.white)
+                    .font(.body.bold())
+
+                Text(notif.message)
+                    .foregroundColor(.gray)
+                    .font(.caption)
+
+                Text("Status: \(notif.status?.capitalized ?? "")")
+                    .foregroundColor(.orange)
+                    .font(.caption2)
+
+                Text(formatDate(notif.timestamp))
+                    .foregroundColor(.gray)
+                    .font(.caption2)
+            }
+            Spacer()
         }
         .padding(.horizontal)
         .padding(.vertical, 8)

@@ -4,41 +4,32 @@ import Foundation
 import FirebaseFirestore
 
 
-struct ChatModel: Identifiable, Codable {
-    var id: String
-    var userId: String
-    var userName: String
-    var lastMessage: String
-    var timeStamp: Date
-    var profileImageURL: String
-    var unreadCount: Int
+struct ChatModel: Identifiable {
+    let id: String
+    let chatId: String
+    let participants: [String]
+    let senderId: String
+    let receiverId: String
+    let senderName: String
+    let receiverName: String
+    let profileImageURL: String
+    let lastMessage: String
+    let timeStamp: Date
 
     init(id: String, data: [String: Any]) {
         self.id = id
-        self.userId = data["userId"] as? String ?? ""
-        self.userName = data["userName"] as? String ?? "Unknown"
-        self.lastMessage = data["lastMessage"] as? String ?? ""
-        if let ts = data["timeStamp"] as? Timestamp {
-            self.timeStamp = ts.dateValue()
-        } else {
-            self.timeStamp = .distantPast
-        }
+        self.chatId = data["chatId"] as? String ?? ""
+        self.participants = data["participants"] as? [String] ?? []
+        self.senderId = data["senderId"] as? String ?? ""
+        self.receiverId = data["receiverId"] as? String ?? ""
+        self.senderName = data["senderName"] as? String ?? ""
+        self.receiverName = data["receiverName"] as? String ?? ""
         self.profileImageURL = data["profileImageURL"] as? String ?? ""
-        self.unreadCount = data["unreadCount"] as? Int ?? 0
-    }
-
-    var asDictionary: [String: Any] {
-        return [
-            "chatId": id,
-            "userId": userId,
-            "userName": userName,
-            "lastMessage": lastMessage,
-            "timeStamp": Timestamp(date: timeStamp),
-            "profileImageURL": profileImageURL,
-            "unreadCount": unreadCount
-        ]
+        self.lastMessage = data["lastMessage"] as? String ?? ""
+        self.timeStamp = (data["timeStamp"] as? Timestamp)?.dateValue() ?? Date()
     }
 }
+
 
 // 💬 MessageModel: one message in chat
 struct MessageModel: Identifiable, Codable {
@@ -84,6 +75,7 @@ struct MessageModel: Identifiable, Codable {
 }
 
 // 🔔 NotificationModel: alert between users
+
 struct NotificationModel: Identifiable, Codable {
     var id: String
     var senderId: String
@@ -94,6 +86,7 @@ struct NotificationModel: Identifiable, Codable {
     var type: NotificationType
     var message: String
     var timestamp: Date
+    var status: String? // ✅ added simply
 
     enum NotificationType: String, Codable {
         case request, accepted, declined
@@ -109,7 +102,9 @@ struct NotificationModel: Identifiable, Codable {
             let type = NotificationType(rawValue: typeRaw),
             let message = data["message"] as? String,
             let timestamp = data["timestamp"] as? Timestamp
-        else { return nil }
+        else {
+            return nil
+        }
 
         self.id = id
         self.senderId = senderId
@@ -120,6 +115,7 @@ struct NotificationModel: Identifiable, Codable {
         self.type = type
         self.message = message
         self.timestamp = timestamp.dateValue()
+        self.status = data["status"] as? String // ✅ just added here
     }
 
     var asDictionary: [String: Any] {
@@ -131,10 +127,12 @@ struct NotificationModel: Identifiable, Codable {
             "senderImageUrl": senderImageUrl ?? "",
             "type": type.rawValue,
             "message": message,
-            "timestamp": Timestamp(date: timestamp)
+            "timestamp": Timestamp(date: timestamp),
+            "status": status ?? "none" // ✅ always safe
         ]
     }
 }
+
 
 // 🛎️ RequestModel: chat requests between users
 struct RequestModel: Identifiable, Codable {

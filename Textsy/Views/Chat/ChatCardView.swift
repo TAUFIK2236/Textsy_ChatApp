@@ -1,77 +1,77 @@
-
-
-import SwiftUI
-import FirebaseCore
-
-struct ChatCardView: View {
-    let chat: ChatModel
-
-    var body: some View {
-        GeometryReader { geometry in
-            let isWide = geometry.size.width > 400
-
-            HStack(spacing: 12) {
-                // Profile Image
-                AsyncImage(url: URL(string: chat.profileImageURL ?? "")) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Color.gray.opacity(0.3)
-                }
-                .frame(width: 50, height: 50)
-                .clipShape(Circle())
-
-                // Name + Last Message
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(chat.userName)
-                        .font(.headline)
-                        .foregroundColor(.color)
-
-                    Text(chat.lastMessage ?? "Say Something....")
-                        .font(.subheadline)
-                        .foregroundColor(.color.opacity(0.7))
-                        .lineLimit(1)
-                }
-
-                Spacer()
-
-                // Time + unread
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(formattedTime)
-                        .font(.caption)
-                        .foregroundColor(.color.opacity(0.8))
-
-                    if chat.unreadCount > 0 {
-                        Text("\(chat.unreadCount)")
-                            .font(.caption2)
-                            .padding(6)
-                            .background(Color.blue)
-                            .clipShape(Circle())
-                            .foregroundColor(.white)
-                    }
-
-                    // Extra info on wide screen
-                    if isWide {
-                        Text("Online")
-                            .font(.caption2)
-                            .foregroundColor(.green)
-                    }
-                }
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal)
-            .frame(width: geometry.size.width) // Make sure the card fills available space
-        }
-        .frame(height: 70) // Give GeometryReader a fixed height to avoid collapse
-    }
-
-    private var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: chat.timeStamp)
-    }
-}
+//
+//
+//import SwiftUI
+//import FirebaseCore
+//
+//struct ChatCardView: View {
+//    let chat: ChatModel
+//
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let isWide = geometry.size.width > 400
+//
+//            HStack(spacing: 12) {
+//                // Profile Image
+//                AsyncImage(url: URL(string: chat.profileImageURL ?? "")) { image in
+//                    image
+//                        .resizable()
+//                        .scaledToFill()
+//                } placeholder: {
+//                    Color.gray.opacity(0.3)
+//                }
+//                .frame(width: 50, height: 50)
+//                .clipShape(Circle())
+//
+//                // Name + Last Message
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text(chat.senderName)
+//                        .font(.headline)
+//                        .foregroundColor(.color)
+//
+//                    Text(chat.lastMessage ?? "Say Something....")
+//                        .font(.subheadline)
+//                        .foregroundColor(.color.opacity(0.7))
+//                        .lineLimit(1)
+//                }
+//
+//                Spacer()
+//
+//                // Time + unread
+//                VStack(alignment: .trailing, spacing: 4) {
+//                    Text(formattedTime)
+//                        .font(.caption)
+//                        .foregroundColor(.color.opacity(0.8))
+////
+////                    if chat.unreadCount > 0 {
+////                        Text("\(chat.unreadCount)")
+////                            .font(.caption2)
+////                            .padding(6)
+////                            .background(Color.blue)
+////                            .clipShape(Circle())
+////                            .foregroundColor(.white)
+////                    }
+//
+//                    // Extra info on wide screen
+//                    if isWide {
+//                        Text("Online")
+//                            .font(.caption2)
+//                            .foregroundColor(.green)
+//                    }
+//                }
+//            }
+//            .padding(.vertical, 10)
+//            .padding(.horizontal)
+//            .frame(width: geometry.size.width) // Make sure the card fills available space
+//        }
+//        .frame(height: 70) // Give GeometryReader a fixed height to avoid collapse
+//    }
+//
+//    private var formattedTime: String {
+//        let formatter = DateFormatter()
+//        formatter.timeStyle = .short
+//        return formatter.string(from: chat.timeStamp)
+//    }
+//}
 
 
 
@@ -96,3 +96,89 @@ struct ChatCardView: View {
 //        .frame(width: 500, height: 70)
 //}
 
+import SwiftUI
+import FirebaseCore
+
+struct ChatCardView: View {
+    let chat: ChatModel
+    @EnvironmentObject var session: UserSession
+
+    var body: some View {
+        GeometryReader { geometry in
+            let isWide = geometry.size.width > 400
+
+            HStack(spacing: 12) {
+                // Profile Image
+                AsyncImage(url: URL(string: chat.profileImageURL)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Color.gray.opacity(0.3)
+                }
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+
+                // Name + Last Message
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(chat.senderName == session.name ? chat.receiverName : chat.senderName)
+                        .font(.headline)
+                        .foregroundColor(.color)
+
+                    Text(chat.lastMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.color.opacity(0.7))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                // Time + unread
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(fullDateTimeString(from: chat.timeStamp))
+                        .font(.caption2)
+                        .foregroundColor(.color.opacity(0.8))
+
+                    Text(timeAgoString(from: chat.timeStamp))
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+
+                    if isWide {
+                        Text("Online")
+                            .font(.caption2)
+                            .foregroundColor(.green)
+                    }
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal)
+            .frame(width: geometry.size.width)
+        }
+        .frame(height: 70)
+    }
+
+    private func fullDateTimeString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private func timeAgoString(from date: Date) -> String {
+        let secondsAgo = Int(Date().timeIntervalSince(date))
+
+        let minute = 60
+        let hour = 60 * minute
+        let day = 24 * hour
+
+        if secondsAgo < minute {
+            return "Just now"
+        } else if secondsAgo < hour {
+            return "\(secondsAgo / minute)m ago"
+        } else if secondsAgo < day {
+            return "\(secondsAgo / hour)h ago"
+        } else {
+            return "\(secondsAgo / day)d ago"
+        }
+    }
+}

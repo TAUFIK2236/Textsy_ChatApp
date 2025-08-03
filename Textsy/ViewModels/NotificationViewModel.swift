@@ -98,7 +98,10 @@ class NotificationViewModel: ObservableObject {
 
     func listenForNotifications(for userId: String) {
         db.collection("notifications")
-            .whereField("receiverId", isEqualTo: userId)
+            .whereFilter(Filter.orFilter([
+                Filter.whereField("receiverId", isEqualTo: userId),
+                Filter.whereField("senderId", isEqualTo: userId)
+            ]))
             .order(by: "timestamp", descending: true)
             .addSnapshotListener { snapshot, _ in
                 self.notifications = snapshot?.documents.compactMap {
@@ -107,7 +110,8 @@ class NotificationViewModel: ObservableObject {
             }
     }
 
-    func sendHiMessage(to userId: String, chatId: String) async {
+
+    func sendHiMessage(to userId: String, chatId: String, notificationId: String) async {
         guard let senderId = Auth.auth().currentUser?.uid else { return }
 
         let message: [String: Any] = [
@@ -136,12 +140,18 @@ class NotificationViewModel: ObservableObject {
                 ])
             }
 
+            try? await chatRef.collection("messages").addDocument(data: message)
 
+            try? await db.collection("notifications")
+                .document(notificationId)
+                .updateData(["status": "accepted"])
         }
     }
 
-    func markAsResponded(notificationId: String) async {
-        try? await db.collection("notifications").document(notificationId).updateData(["status": "responded"])
+    func markAsResponded(notificationId: String, status: String) async {
+        try? await db.collection("notifications")
+            .document(notificationId)
+            .updateData(["status": status])
     }
 
     func deleteNotification(notificationId: String) async {
@@ -161,3 +171,4 @@ class NotificationViewModel: ObservableObject {
         }
     }
 }
+//------notification is not working properly
