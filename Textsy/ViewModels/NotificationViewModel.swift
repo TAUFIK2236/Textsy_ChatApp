@@ -28,19 +28,24 @@ class NotificationViewModel: ObservableObject {
 
     func sendHiMessage(to userId: String, chatId: String, notificationId: String) async {
         guard let senderId = Auth.auth().currentUser?.uid else { return }
-
+        let chatRef = db.collection("chats").document(chatId)
+        let exists = try? await chatRef.getDocument().exists
+       
+        
+        if let sender = await fetchUserInfo(uid: senderId),
+           let receiver = await fetchUserInfo(uid: userId) {
         let message: [String: Any] = [
             "senderId": senderId,
+            "receiverId": userId,
+            "senderName": sender.name,
+            "receiverName": receiver.name,
             "text": "Hey, how have you been?",
             "timestamp": Timestamp(date: Date())
         ]
 
-        let chatRef = db.collection("chats").document(chatId)
-        let exists = try? await chatRef.getDocument().exists
 
-        if let sender = await fetchUserInfo(uid: senderId),
-           let receiver = await fetchUserInfo(uid: userId) {
 
+            // ✅ Create chat if not exists
             if exists == false {
                 try? await chatRef.setData([
                     "chatId": chatId,
@@ -54,9 +59,10 @@ class NotificationViewModel: ObservableObject {
                     "timeStamp": Timestamp(date: Date())
                 ])
             }
-
+            // ✅ Save message
             try? await chatRef.collection("messages").addDocument(data: message)
 
+            // ✅ Update status
             try? await db.collection("notifications")
                 .document(notificationId)
                 .updateData(["status": "accepted"])
