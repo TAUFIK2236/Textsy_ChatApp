@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct LoginView: View {
-    @State private var email = "mstanikatabasum786@gmail.com"
-    //@State private var email = "taufikalislam@gmail.com"
+   // @State private var email = "mstanikatabasum786@gmail.com"
+    @State private var email = "taufikalislam@gmail.com"
     @State private var password = "13134646"
     @StateObject private var viewModel = AuthViewModel()
     @EnvironmentObject var session: UserSession
