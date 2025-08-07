@@ -85,5 +85,26 @@ class NotificationViewModel: ObservableObject {
             return nil
         }
     }
+    func sendResponseNotification(to receiverId: String, from senderId: String, senderName: String, senderImageUrl: String?, type: String) async {
+        let db = Firestore.firestore()
+
+        let notification: [String: Any] = [
+            "senderId": senderId,
+            "receiverId": receiverId,
+            "senderName": senderName,
+            "receiverName": "", // Optional: You can fetch name from Firestore
+            "senderImageUrl": senderImageUrl ?? "",
+            "type": type,
+            "message": "\(senderName) \(type == "accepted" ? "accepted" : "declined") your chat request",
+            "timestamp": Timestamp(date: Date())
+        ]
+
+        do {
+            try await db.collection("notifications").addDocument(data: notification)
+        } catch {
+            print("❌ Failed to send response notification: \(error.localizedDescription)")
+        }
+    }
+
 }
 //------notification is not working properly

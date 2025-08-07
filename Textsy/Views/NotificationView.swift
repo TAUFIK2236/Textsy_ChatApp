@@ -31,17 +31,19 @@ struct NotificationView: View {
 
             ScrollView {
                 LazyVStack(spacing: 15) {
-                    ForEach(notificationVM.notifications) { notif in
-                         Button{
-                             appRouter.goToUserProfile(id: notif.senderId)
-                         } label:{
-                        if notif.status == nil {
-                            notificationCard(for: notif)
-                        } else {
-                            resolvedNotificationCard(for: notif)
+                    ForEach(notificationVM.notifications.filter { $0.senderId != session.uid }) { notif in
+                        Button {
+                            
+                            appRouter.goToUserProfile(id: notif.senderId)
+                        } label: {
+                            if notif.status == nil {
+                                notificationCard(for: notif)
+                            } else {
+                                resolvedNotificationCard(for: notif)
+                            }
                         }
                     }
-                    }//
+
                 }
                 .padding()
             }
@@ -99,6 +101,10 @@ struct NotificationView: View {
                             let chatId = generateChatId(session.uid, notif.senderId)
                             await notificationVM.sendHiMessage(to: notif.senderId, chatId: chatId, notificationId: notif.id)
                             await notificationVM.markAsResponded(notificationId: notif.id, status: "accepted")
+                            await notificationVM.sendResponseNotification(to: notif.senderId,from: session.uid, senderName: session.name,senderImageUrl: session.profileImageUrl,
+                                type: "accepted"
+                            )
+
                             isProcessing[notif.id] = false
                         }
                     }
