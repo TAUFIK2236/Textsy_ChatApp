@@ -6,7 +6,7 @@ struct UserProfileView: View {
     @StateObject private var requestVM = RequestViewModel()
 
 
-   // var isViewingOwnProfile: Bool = false
+ 
     
     let user: UserModel
 
@@ -147,8 +147,24 @@ struct UserProfileView: View {
 
                             case .accepted:
                                 Button {
-                                    Task{
-                                        
+                                    Task {
+                                        // Step 1: Create a unique and consistent chatId
+                                        let chatId = [session.uid, user.id].sorted().joined(separator: "_")
+
+                                        // Step 2: Create Chat if not exists
+                                        let chatVM = ChatSessionViewModel()
+                                        await chatVM.createChatIfNotExists(
+                                            chatId: chatId,
+                                            senderId: session.uid,
+                                            receiverId: user.id,
+                                            senderName: session.name,
+                                            receiverName: user.name,
+                                            senderImage: session.profileImageUrl,
+                                            receiverImage: user.profileImageUrl
+                                        )
+
+                                        // Step 3: Navigate to ChatView using appRouter
+                                        appRouter.goToChat(with: chatId)
                                     }
                                 } label: {
                                     Image(systemName: "message.fill")
