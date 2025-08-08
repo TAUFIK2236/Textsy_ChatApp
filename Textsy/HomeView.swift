@@ -120,6 +120,7 @@ struct HomeView: View {
 
             Button {
                 appRouter.goToUserProfile(id: session.uid)
+                
             } label: {
                 Image(systemName: "person.crop.circle")
                     .font(.title.bold())

@@ -66,6 +66,7 @@ struct MainAppRouterView: View {
                 .environmentObject(session)
                 .environmentObject(notificationVM)
                 .environmentObject(chatMV)
+            
         case .profileEdit(let isFromSignUp):
             ProfileEditView(isFromSignUp: isFromSignUp)
                 .environmentObject(appRouter)
@@ -98,6 +99,15 @@ struct MainAppRouterView: View {
                 .environmentObject(session)
                 .environmentObject(notificationVM)
                 .environmentObject(chatMV)
+            
+            
+//        case .myOnwProfile:
+//            UserProfileWrapperView(userId: session.uid)
+//                .environmentObject(appRouter)
+//                .environmentObject(session)
+//                .environmentObject(notificationVM)
+//                .environmentObject(chatMV)
+            
         }
     }
     private func routeBasedOnProfile() {

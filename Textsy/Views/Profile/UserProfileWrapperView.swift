@@ -8,6 +8,7 @@ struct UserProfileWrapperView: View {
     @State private var user: UserModel? = nil
     @State private var isLoading = true
     @State private var error: String? = nil
+    
 
     var body: some View {
         Group {

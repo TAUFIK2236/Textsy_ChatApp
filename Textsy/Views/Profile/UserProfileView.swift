@@ -17,7 +17,11 @@ struct UserProfileView: View {
                     // MARK: - Custom Top Bar
                     HStack {
                         Button(action: {
-                            appRouter.goToExplore()
+                            if user.id == session.uid {
+                                appRouter.goToHome() // 👈 back to Home if it's my own profile
+                            } else {
+                                appRouter.goToExplore()
+                            }
                         }) {
                             Image(systemName: "chevron.left")
                                 .font(.title2)
@@ -26,6 +30,7 @@ struct UserProfileView: View {
                                 .background(Color.white.opacity(0.1))
                                 .clipShape(Circle())
                         }
+
 
                         Spacer()
 

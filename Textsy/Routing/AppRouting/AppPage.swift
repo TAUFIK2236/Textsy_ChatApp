@@ -12,6 +12,8 @@ enum AppPage: Equatable {
     case userProfile(userId: String)
     case notifications
     case settingss
+    
+ //   case myOnwProfile
     // future if you want
 }
 
@@ -26,6 +28,7 @@ class AppRouter: ObservableObject {
     func goToUserProfile(id: String) {currentPage = .userProfile(userId: id)}
     func goToNotification(){currentPage = .notifications }
     func goToSettingss(){currentPage = .settingss}
+  //  func goToMyOwnProfile(){currentPage = .myOnwProfile}
 
 }
 extension AppPage {// I have to keep it and keep eyes on it

@@ -26,6 +26,7 @@ struct ExploreView: View {
 
                     FloatingButton(icon:"arrow.right.to.line", backgroundColor:.blue){
                         appRouter.goToHome()
+                       
                     }
                     
                 }else{
