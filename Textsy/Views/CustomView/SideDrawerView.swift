@@ -159,7 +159,7 @@ struct SideDrawerView: View {
                         title: "Home",
                         systemIcon: "house.fill",
                         action: { goTo(.home) },
-                        isActive: currentPage == .profileEdit(isFromSignUp: false)
+                        isActive: currentPage == .home
                     )
 
                     drawerButton(

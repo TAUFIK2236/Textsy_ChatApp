@@ -112,40 +112,32 @@ struct ProfileEditView: View {
                         Spacer()
                     }
                     .padding(.bottom, 40)
+                    .onAppear {
+                        name = session.name
+                        age = String(session.age)
+                        location = session.location
+                        bio = session.bio
+                    }
+
                 }
                 .background(Color(.bgc))
             }
-            
+             .blur(radius: isDrawerOpen ? 8 : 0)
             .sheet(isPresented: $showingImagePicker) {ImagePicker(image: $inputImage)}
             .onChange(of: inputImage) { _ in loadImage() }
                 
-                if isDrawerOpen {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation{
-                                isDrawerOpen = false
-                            }
-                        }
-
-                    SideDrawerView(
-                        isOpen: $isDrawerOpen,
-                        currentPage: appRouter.currentPage,
-                        goTo:{
-                            page in withAnimation {
-                                appRouter.currentPage = page
-                                isDrawerOpen = false
-                            }
-                        },
-                        onLogout: {
-                            UserSession.shared.clear()
-                            isDrawerOpen = false
-                        },
-                        onExit:{ exit(0)
-                        }
-                    )
-                    .transition(.move(edge: .leading))
-                }
+            .overlay(
+                SideDrawerView(
+                    isOpen: $isDrawerOpen,
+                    currentPage: appRouter.currentPage,
+                    goTo: { page in withAnimation { appRouter.currentPage = page; isDrawerOpen = false } },
+                    onLogout: { UserSession.shared.clear(); isDrawerOpen = false },
+                    onExit: { exit(0) }
+                )
+                .transition(.move(edge: .leading))
+                .animation(.easeInOut, value: isDrawerOpen)
+                .opacity(isDrawerOpen ? 1 : 0)
+            )
         }
     }
 }

@@ -62,35 +62,24 @@ struct HomeView: View {
                         .cornerRadius(40)
                         .frame(width: geometry.size.width, height: geometry.size.height * 2)
                         .shadow(color: .sdc, radius: 10)
+                        .blur(radius: isDrawerOpen ? 8 : 0)
                     }
                 }
-                .blur(radius: isDrawerOpen ? 8 : 0)
+                
 
                 // 🔒 Drawer
-                if isDrawerOpen {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation { isDrawerOpen = false }
-                        }
-
+                .overlay(
                     SideDrawerView(
                         isOpen: $isDrawerOpen,
                         currentPage: appRouter.currentPage,
-                        goTo: { page in
-                            withAnimation {
-                                appRouter.currentPage = page
-                                isDrawerOpen = false
-                            }
-                        },
-                        onLogout: {
-                            UserSession.shared.clear()
-                            isDrawerOpen = false
-                        },
+                        goTo: { page in withAnimation { appRouter.currentPage = page; isDrawerOpen = false } },
+                        onLogout: { UserSession.shared.clear(); isDrawerOpen = false },
                         onExit: { exit(0) }
                     )
                     .transition(.move(edge: .leading))
-                }
+                    .animation(.easeInOut, value: isDrawerOpen)
+                    .opacity(isDrawerOpen ? 1 : 0)
+                )
             }
             .background(.appbar)
             .onAppear {

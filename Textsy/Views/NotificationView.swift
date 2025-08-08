@@ -49,6 +49,7 @@ struct NotificationView: View {
             }
             .background(Color(.bgc))
         }
+        .blur(radius: isDrawerOpen ? 8 : 0)
         .background(Color(.bgc))
         .onAppear {
             notificationVM.listenForNotifications(for: session.uid)
