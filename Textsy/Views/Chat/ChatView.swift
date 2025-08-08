@@ -29,7 +29,7 @@ struct ChatView: View {
                             .foregroundColor(.white)
                     }
 
-                    Image("Logo1")
+                    Image("profile")
                         .resizable()
                         .frame(width: 40, height: 40)
                         .clipShape(Circle())
