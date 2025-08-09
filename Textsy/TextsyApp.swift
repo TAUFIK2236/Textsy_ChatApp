@@ -10,16 +10,17 @@ import FirebaseCore
 
 @main
 struct TextsyApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     @AppStorage("isDarkMode") private var isDarkMode = true
     @StateObject var session = UserSession.shared
     @StateObject var appRouter = AppRouter()
 
 
-    init() {
-        FirebaseApp.configure()
-        print("Configured FireBase")
-    }
+//    init() {
+//        FirebaseApp.configure()
+//        print("Configured FireBase")
+//    }
 
     var body: some Scene {
         WindowGroup {
