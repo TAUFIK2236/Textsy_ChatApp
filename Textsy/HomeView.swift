@@ -35,17 +35,24 @@ struct HomeView: View {
                                         .foregroundColor(.red)
                                         .padding(.bottom, 10)
                                 }
+                                
+                                let chatList = isSearching ? filteredChats : viewModel.chats
 
-                                LazyVStack(spacing: 0) {
-                                    if isSearching {
-                                        ForEach(filteredChats) { chat in
-                                            Button {
-                                                appRouter.goToChat(with: chat.id)
-                                            } label: {
-                                                ChatCardView(chat: chat)
-                                            }
+                             
+                                    if chatList.isEmpty {
+                                        VStack(alignment:.center,spacing:10){
+                                            Image("Nothing")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width:300,height:300)
+                                            Text("Chat List is Empty !!!")
+                                                .font(.headline)
+                                                .foregroundColor(.gray)
                                         }
+                                        .frame(maxWidth:.infinity,maxHeight: .infinity)
+                                        .padding(.top,70)
                                     } else {
+                                        LazyVStack(spacing: 0) {
                                         ForEach(viewModel.chats) { chat in
                                             Button {
                                                 appRouter.goToChat(with: chat.id)

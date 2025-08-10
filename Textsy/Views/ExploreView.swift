@@ -18,37 +18,52 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             ZStack{
-            VStack{
-                if isFirstTime{
-                            Text("Profile")
-                                .font(.title.bold())
-                                .foregroundColor(.white)
-
-                    FloatingButton(icon:"arrow.right.to.line", backgroundColor:.blue){
-                        appRouter.goToHome()
-                       
-                    }
-                    
-                }else{
-                    topBar(isDrawerOpen: $isDrawerOpen)
-                }
-                
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(viewModel.users) { user in
-                            Button {
-                                appRouter.goToUserProfile(id: user.id)
-                                // selectedUser = user
-                            } label: {
-                                UserCardView(user: user)
-                            }
+                VStack{
+                    if isFirstTime{
+                        Text("Profile")
+                            .font(.title.bold())
+                            .foregroundColor(.white)
+                        
+                        FloatingButton(icon:"arrow.right.to.line", backgroundColor:.blue){
+                            appRouter.goToHome()
+                            
                         }
                         
+                    }else{
+                        topBar(isDrawerOpen: $isDrawerOpen)
                     }
                     
-                    .padding()
+                    ScrollView {
+                        if viewModel.users.isEmpty{
+                            VStack(alignment:.center,spacing:10){
+                                Image("Nothing")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width:300,height:300)
+                                Text("No Users Found !!!")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(maxWidth:.infinity,maxHeight: .infinity)
+                            .padding(.top,70)
+                        }
+                        else{
+                        
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(viewModel.users) { user in
+                                Button {
+                                    appRouter.goToUserProfile(id: user.id)
+                                    // selectedUser = user
+                                } label: {
+                                    UserCardView(user: user)
+                                }
+                            }
+                            
+                        }
+                        
+                        .padding()
+                    }
                 }
-
 
             }                .blur(radius: isDrawerOpen ? 8 : 0)
             // 🔒 Background blur + close on tap
@@ -177,10 +192,15 @@ private func topBar(isDrawerOpen: Binding<Bool>) -> some View {
         }
     }
 
-#Preview("ExploreView - Dark Mode") {
+#Preview("ExploreView Empty State - Dark Mode") {
     ExploreView()
-        .preferredColorScheme(.light)
+        .preferredColorScheme(.dark)
         .environmentObject(UserSession.shared)
-
+        .onAppear {
+            // Force empty state for preview
+            let vm = ExploreViewModel()
+            vm.users = []
+        }
 }
+
 

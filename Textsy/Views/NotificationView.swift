@@ -17,19 +17,34 @@ struct NotificationView: View {
                         .foregroundColor(.white)
                         .padding(10)
                 }
-
+                
                 Spacer()
-
+                
                 Text("Notifications")
                     .foregroundColor(.white)
                     .font(.title.bold())
-
+                
                 Spacer()
                 Spacer()
             }
             .padding(.horizontal)
-
+            
             ScrollView {
+                
+                if notificationVM.notifications.filter { $0.senderId != session.uid }.isEmpty{
+                    VStack(alignment:.center,spacing:10){
+                        Image("Nothing")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width:300,height:300)
+                        Text("No Notification Yet!!!")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth:.infinity,maxHeight: .infinity)
+                    .padding(.top,70)
+                }
+                else{
                 LazyVStack(spacing: 15) {
                     ForEach(notificationVM.notifications.filter { $0.senderId != session.uid }) { notif in
                         Button {
@@ -43,10 +58,11 @@ struct NotificationView: View {
                             }
                         }
                     }
-
+                    
                 }
                 .padding()
             }
+        }
             .background(Color(.bgc))
         }
         .blur(radius: isDrawerOpen ? 8 : 0)
