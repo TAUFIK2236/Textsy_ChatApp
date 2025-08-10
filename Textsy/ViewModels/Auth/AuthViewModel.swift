@@ -7,7 +7,7 @@ import FirebaseFirestore
 class AuthViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage = ""
-
+    @Published var  sentMessage = ""
     
     // 1. Login Function
     func login(email: String, password: String) async {
@@ -61,9 +61,11 @@ class AuthViewModel: ObservableObject {
     func resetPassword(email:String) async{
         isLoading = true
         errorMessage = ""
+        sentMessage = ""
         do{
             try await Auth.auth().sendPasswordReset(withEmail: email)
             print("Reset Email sent to \(email)")
+            sentMessage = "We’ve sent a password reset link to \(email).Please check your inbox."
         }catch{
             errorMessage = error.localizedDescription
             print("Reset error: \(errorMessage)")

@@ -83,6 +83,17 @@ struct ForgotPasswordView: View {
                 if viewModel.isLoading {
                     LoadingCircleView()
                 }
+                
+                if !viewModel.sentMessage.isEmpty {
+                    AlertCardView(
+                        title: "Email Sent!",
+                        message: viewModel.sentMessage,
+                        dismissAction: {
+                            withAnimation { viewModel.sentMessage = "" }
+                        }
+                    )
+                }
+
 
                 if !viewModel.errorMessage.isEmpty {
                     AlertCardView(
