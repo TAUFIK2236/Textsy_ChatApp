@@ -108,10 +108,20 @@ struct SignupView: View {
                 }
                 
                 if !viewModel.errorMessage.isEmpty {
-                    Text(viewModel.errorMessage)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .font(.caption)
+                    AlertCardView(
+                        title: "Oops!",
+                        message: viewModel.errorMessage,
+                        dismissAction: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                viewModel.errorMessage = ""
+                            }
+                        }
+                    )
+                    .padding(.top, 20)
+                    .zIndex(1) // keep it on top of content
+                    // parent drives insertion/removal animation, matching the card's transition
+                    .animation(.spring(response: 0.35, dampingFraction: 0.85),
+                               value: viewModel.errorMessage.isEmpty)
                 }
                 if viewModel.isLoading {
                     LoadingCircleView()

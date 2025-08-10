@@ -113,12 +113,25 @@ struct LoginView: View {
                 if viewModel.isLoading {
                     LoadingCircleView() // your original spinner
                 }
+                //  put inside the ZStack in LoginView, where the old Text(error) was
                 if !viewModel.errorMessage.isEmpty {
-                    Text(viewModel.errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                        .multilineTextAlignment(.center)
+                    AlertCardView(
+                        title: "Oops!",
+                        message: viewModel.errorMessage,
+                        dismissAction: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                viewModel.errorMessage = ""
+                            }
+                        }
+                    )
+                    .padding(.top, 20)
+                    .zIndex(1) // keep it on top of content
+                    // parent drives insertion/removal animation, matching the card's transition
+                    .animation(.spring(response: 0.35, dampingFraction: 0.85),
+                               value: viewModel.errorMessage.isEmpty)
                 }
+
+
 
             }//Zstack
         }
