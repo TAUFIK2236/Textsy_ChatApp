@@ -1,4 +1,3 @@
-
 import SwiftUI
 import Foundation
 import FirebaseFirestore
@@ -167,3 +166,5 @@ struct ChatBubble: View {
         .padding(.horizontal, 10)
     }
 }
+
+

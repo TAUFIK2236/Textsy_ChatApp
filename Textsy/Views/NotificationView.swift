@@ -209,3 +209,9 @@ struct NotificationView: View {
         return formatter.string(from: date)
     }
 }
+#Preview("NotificationView – iPhone") {
+    NotificationView()
+        .environmentObject(UserSession.shared) // temporary instance
+        .environmentObject(AppRouter())    // temporary router
+        .preferredColorScheme(.dark)
+}

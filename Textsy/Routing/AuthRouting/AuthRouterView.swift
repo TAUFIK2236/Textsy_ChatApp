@@ -5,6 +5,7 @@ import SwiftUI
 
 struct AuthRouterView: View {
     @StateObject var router = AuthRouter()
+    @StateObject var appRouter = AppRouter()
 
     var body: some View {
         switch router.currentPage {
@@ -12,16 +13,18 @@ struct AuthRouterView: View {
             LoginView()
                 .environmentObject(router)
                 .environmentObject(UserSession.shared)
+                .environmentObject(appRouter)
 
         case .signup:
             SignupView()
                 .environmentObject(router)
                 .environmentObject(UserSession.shared)
-                .environmentObject(AppRouter())
+                .environmentObject(appRouter)
 
         case .forgot:
             ForgotPasswordView()
                 .environmentObject(router)
+                .environmentObject(appRouter)
         }
     }
 }

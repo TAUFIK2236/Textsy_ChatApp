@@ -63,7 +63,7 @@ struct LoginView: View {
                                 if viewModel.errorMessage.isEmpty {
                                     await session.loadUserProfileFromFirestore()
 
-                                    // 👶 Check if profile is filled
+                                    //  Check if profile is filled
                                     if session.hasCompletedProfile() {
                                         session.isProfileLoaded = true
                                         appRouter.goToHome()
@@ -143,6 +143,3 @@ struct LoginView: View {
     LoginView()
         .preferredColorScheme(.light)
 }
-
-
-

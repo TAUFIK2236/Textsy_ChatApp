@@ -9,7 +9,7 @@ struct AlertCardView: View {
     @State private var show = false
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) { // slightly more space
             // Title
             Text(title)
                 .font(.headline)
@@ -28,7 +28,7 @@ struct AlertCardView: View {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                     show = false
                 }
-                // run  dismiss after the shrink finishes
+                // run dismiss after the shrink finishes
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                     dismissAction()
                 }
@@ -42,12 +42,12 @@ struct AlertCardView: View {
                     .cornerRadius(10)
             }
         }
-        .padding()
-        .background(Color(.fieldT)) //  app’s card color
+        .padding(24) // increased from default
+        .frame(minHeight: 180) // added to make card taller
+        .background(Color(.fieldT))
         .cornerRadius(20)
         .shadow(radius: 10)
-        .padding(.horizontal)
-        //  entrance “pop” + fade (height still auto)
+        .padding(.horizontal, 32) // more horizontal breathing room
         .scaleEffect(show ? 1.0 : 0.92)
         .opacity(show ? 1.0 : 0.0)
         .onAppear {
@@ -56,10 +56,17 @@ struct AlertCardView: View {
             }
         }
         .onDisappear {
-            // make sure it resets if removed
             show = false
         }
-        // slide-from-top when inserted/removed by parent
         .transition(.move(edge: .top).combined(with: .opacity))
     }
+}
+
+#Preview("AlertCard – Longer") {
+    AlertCardView(
+        title: "Oops!",
+        message: "This is a slightly longer alert card with more padding and a taller frame, so it feels more spacious and readable.",
+        dismissAction: {}
+    )
+    .preferredColorScheme(.dark)
 }
