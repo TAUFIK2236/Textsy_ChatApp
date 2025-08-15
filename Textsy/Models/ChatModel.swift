@@ -4,7 +4,7 @@ import Foundation
 import FirebaseFirestore
 
 
-struct ChatModel: Identifiable {
+struct ChatModel: Identifiable, Codable {
     let id: String
     let chatId: String
     let participants: [String]

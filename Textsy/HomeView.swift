@@ -53,7 +53,7 @@ struct HomeView: View {
                                         .padding(.top,70)
                                     } else {
                                         LazyVStack(spacing: 0) {
-                                        ForEach(viewModel.chats) { chat in
+                                            ForEach(chatList) { chat in
                                             Button {
                                                 appRouter.goToChat(with: chat.id)
                                             } label: {

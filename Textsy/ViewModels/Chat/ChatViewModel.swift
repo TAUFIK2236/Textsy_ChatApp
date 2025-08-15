@@ -9,63 +9,61 @@ import FirebaseAuth
 class ChatViewModel: ObservableObject {
     @Published var chats: [ChatModel] = []
     @Published var errorMessage = ""
-
+    
+    private var listener: ListenerRegistration?
+    private let cacheKey = "cached_chats_v2"
+    
     // 🧠 Load chats from Firestore
-    func listenToChats(for userId: String) {
-        Firestore.firestore()
+    func listenToChats(for userId: String,pageSize : Int = 30) {
+        
+        loadCache()
+        listener?.remove()
+        
+        listener = Firestore.firestore()
             .collection("chats")
             .whereField("participants", arrayContains: userId)
             .order(by: "timeStamp", descending: true)
-            .addSnapshotListener { snapshot, error in
+            .limit(to:pageSize)
+            .addSnapshotListener {[weak self] snapshot, error in
+                guard let self = self else {return}
                 if let error = error {
                     self.errorMessage = "❌ Listener failed: \(error.localizedDescription)"
                     return
                 }
-
+                
                 guard let docs = snapshot?.documents else {
                     self.errorMessage = "❌ No chat documents found"
                     return
                 }
-
-                self.chats = docs.compactMap { doc in
-                    ChatModel(id: doc.documentID, data: doc.data())
+                
+                self.chats = docs.compactMap {
+                    ChatModel(id: $0.documentID, data: $0.data())
                 }
-
+                self.saveCache(self.chats)
+                
                 print("📡 Live chat list updated with \(self.chats.count) chats")
             }
     }
-
-
-
-//    func debugChatsOnce() {
-//        guard let uid = Auth.auth().currentUser?.uid else {
-//            print("❌ No current user")
-//            return
-//        }
-//        print("🔎 Debug UID:", uid)
-//
-//        let db = Firestore.firestore()
-//        db.collection("chats")
-//            .whereField("participants", arrayContains: uid)
-//            .order(by: "timeStamp", descending: true)   // keep this; index is ready
-//            .limit(to: 20)
-//            .getDocuments { snap, err in
-//                if let err = err {
-//                    print("❌ Query error:", err.localizedDescription)
-//                    return
-//                }
-//                let count = snap?.documents.count ?? 0
-//                print("📦 Server returned docs:", count)
-//
-//                snap?.documents.forEach { doc in
-//                    let data = doc.data()
-//                    print("— id:", doc.documentID)
-//                    print("  participants:", data["participants"] ?? "nil")
-//                    print("  timeStamp:", data["timeStamp"] ?? "nil")
-//                    print("  lastMessage:", data["lastMessage"] ?? "nil")
-//                }
-//            }
-//    }
-
+    
+    private func saveCache(_ items: [ChatModel]){
+        do{
+            let data = try JSONEncoder().encode(items)
+            UserDefaults.standard.set(data, forKey: cacheKey)
+        }catch{
+            print("Cache save failed : \(error.localizedDescription)")
+        }
+    }
+    
+    
+    private func loadCache(){
+        guard let data = UserDefaults.standard.data(forKey: cacheKey) else {return}
+        do{
+            let cached = try JSONDecoder().decode([ChatModel].self, from: data)
+            self.chats = cached
+            print("Load\(cached.count) chats from cache")
+        }catch{
+            print("Cache load failed : \(error.localizedDescription)")
+        }
+    }
     
 }
