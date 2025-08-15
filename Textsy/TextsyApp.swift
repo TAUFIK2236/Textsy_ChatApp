@@ -15,12 +15,9 @@ struct TextsyApp: App {
     @AppStorage("isDarkMode") private var isDarkMode = true
     @StateObject var session = UserSession.shared
     @StateObject var appRouter = AppRouter()
+    @StateObject var network = NetworkMonitor()
 
 
-//    init() {
-//        FirebaseApp.configure()
-//        print("Configured FireBase")
-//    }
 
     var body: some Scene {
         WindowGroup {
@@ -29,6 +26,14 @@ struct TextsyApp: App {
                 .environmentObject(appRouter)
                 .environmentObject(session)
                 .environmentObject(ChatViewModel())
+                .environmentObject(network)
+            
+                .overlay(
+                    ConnectivityBanner()
+                        .environmentObject(network)
+                        .transition(.move(edge: .top))
+                        .zIndex(1)
+                )
 
         }
     }

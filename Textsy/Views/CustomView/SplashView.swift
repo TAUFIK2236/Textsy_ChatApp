@@ -5,27 +5,16 @@ struct SplashView: View {
     @State private var showMain = false
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var appRouter: AppRouter
-
+    @StateObject var network = NetworkMonitor()
 
     var body: some View {
         ZStack {
             if showMain {
-                // ✅ Show main screen after splash ends
-                
-                
-//
-//                
-//                if session.uid.isEmpty {
-//                    AuthRouterView()
-//                } else if session.hasCompletedProfile() {
-//                    MainAppRouterView()
-//                } else {
-//                    ProfileEditView(isFromSignUp: true)
-//                        .environmentObject(appRouter)
-//                }
+
                 
                 if session.uid.isEmpty {
                     AuthRouterView()
+                        .environmentObject(network)
                 } else if !session.isProfileLoaded {
                     LoadingCircleView() // 🌀 Clean loading view
                 } else {
@@ -40,7 +29,7 @@ struct SplashView: View {
 
 
             } else {
-                // ✅ Splash screen animation (do NOT touch this part)
+                // Splash screen animation (do NOT touch this part)
                 Color(.bgc)
                     .ignoresSafeArea()
 
