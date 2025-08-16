@@ -115,7 +115,9 @@ struct NotificationView: View {
                     Button("Say Hi") {
                         Task {
                             isProcessing[notif.id] = true
-                            let chatId = generateChatId(session.uid, notif.senderId)
+                            
+                            let chatId = ChatSessionViewModel().computeChatId(session.uid, notif.senderId)
+                          //  let chatId =generateChatId(session.uid, notif.senderId)
                             await notificationVM.sendHiMessage(to: notif.senderId, chatId: chatId, notificationId: notif.id)
                             await notificationVM.markAsResponded(notificationId: notif.id, status: "accepted")
                             await notificationVM.sendResponseNotification(to: notif.senderId,from: session.uid, senderName: session.name,senderImageUrl: session.profileImageUrl,
@@ -199,9 +201,9 @@ struct NotificationView: View {
         }
     }
 
-    private func generateChatId(_ uid1: String, _ uid2: String) -> String {
-        [uid1, uid2].sorted().joined(separator: "_")
-    }
+//    private func generateChatId(_ uid1: String, _ uid2: String) -> String {
+//        [uid1, uid2].sorted().joined(separator: "_")
+//    }
 
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()

@@ -154,10 +154,12 @@ struct UserProfileView: View {
                                 Button {
                                     Task {
                                         // Step 1: Create a unique and consistent chatId
-                                        let chatId = [session.uid, user.id].sorted().joined(separator: "_")
+                                        let chatVM = ChatSessionViewModel()
+                                        let chatId = chatVM.computeChatId(session.uid, user.id)
+
 
                                         // Step 2: Create Chat if not exists
-                                        let chatVM = ChatSessionViewModel()
+                                      
                                         await chatVM.createChatIfNotExists(
                                             chatId: chatId,
                                             senderId: session.uid,
