@@ -65,10 +65,10 @@ struct LoginView: View {
 
                                     //  Check if profile is filled
                                     if session.hasCompletedProfile() {
-                                        session.isProfileLoaded = true
+                                      
                                         appRouter.goToHome()
                                     } else {
-                                        session.isProfileLoaded = true
+                                    
                                         appRouter.goToProfileEdit(isFromSignUp: true)
                                     }
                                 }

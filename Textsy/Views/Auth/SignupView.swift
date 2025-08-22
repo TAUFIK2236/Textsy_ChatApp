@@ -74,7 +74,7 @@ struct SignupView: View {
                                 await viewModel.signup(email: email, password: password)
                                 //if sign-up succeed, go to profile edit page
                                 if viewModel.errorMessage.isEmpty {
-                                    session.isProfileLoaded = true
+                      
                                     appRouter.goToProfileEdit(isFromSignUp: true)
                                 }
                             }
