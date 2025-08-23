@@ -32,8 +32,8 @@ It supports **authentication, live messaging, profile management, and notificati
 |-----------|---------|--------------|
 | <img src="screenshots/chat.jpg" width="220"> | <img src="screenshots/explore.jpg" width="220"> | <img src="screenshots/menu.jpg" width="220"> |
 
-| Settings |   |   |
-|----------|---|---|
+| Settings |
+|----------|
 | <img src="screenshots/settings.jpg" width="220"> |  
 
 
