@@ -23,13 +23,20 @@ It supports **authentication, live messaging, profile management, and notificati
 ## 📸 Screenshots  
  
 
-| Login | Reset Password | Chats | Chat View | Explore |
-|-------|----------------|-------|-----------|---------|
-| <img src="screenshots/login.jpg" width="200"> | <img src="screenshots/reset.jpg" width="200"> | <img src="screenshots/chats.png" width="200"> | <img src="screenshots/chatview.jpg" width="200"> | <img src="screenshots/explore.jpg" width="200"> |
+## 📸 Screenshots  
 
-| Sidebar Menu | Settings |
-|--------------|----------|
-| <img src="screenshots/menu.jpg" width="250"> | <img src="screenshots/settings.jpg" width="250"> |
+| Login | Reset Password | Chats |
+|-------|----------------|-------|
+| <img src="screenshots/login.jpg" width="220"> | <img src="screenshots/reset.jpg" width="220"> | <img src="screenshots/chats.png" width="220"> |
+
+| Chat View | Explore | Sidebar Menu |
+|-----------|---------|--------------|
+| <img src="screenshots/chatview.jpg" width="220"> | <img src="screenshots/explore.jpg" width="220"> | <img src="screenshots/menu.jpg" width="220"> |
+
+| Settings |   |   |
+|----------|---|---|
+| <img src="screenshots/settings.jpg" width="220"> |   |   |
+
 
 
 ---
