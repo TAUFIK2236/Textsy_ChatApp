@@ -21,14 +21,16 @@ It supports **authentication, live messaging, profile management, and notificati
 ---
 
 ## 📸 Screenshots  
+ 
 
 | Login | Reset Password | Chats | Chat View | Explore |
 |-------|----------------|-------|-----------|---------|
-| ![Login](screenshots/login.jpg) | ![Reset](screenshots/reset.jpg) | ![Chats](screenshots/chats.jpg) | ![Chat](screenshots/chat.jpg) | ![Explore](screenshots/explore.jpg) |
+| <img src="screenshots/login.jpg" width="200"> | <img src="screenshots/reset.jpg" width="200"> | <img src="screenshots/chats.png" width="200"> | <img src="screenshots/chatview.jpg" width="200"> | <img src="screenshots/explore.jpg" width="200"> |
 
 | Sidebar Menu | Settings |
 |--------------|----------|
-| ![Menu](screenshots/menu.jpg) | ![Settings](screenshots/settings.jpg) |
+| <img src="screenshots/menu.jpg" width="250"> | <img src="screenshots/settings.jpg" width="250"> |
+
 
 ---
 
