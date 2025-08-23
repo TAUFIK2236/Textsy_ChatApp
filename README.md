@@ -34,7 +34,7 @@ It supports **authentication, live messaging, profile management, and notificati
 
 | Settings |   |   |
 |----------|---|---|
-| <img src="screenshots/settings.jpg" width="220"> |   |   |
+| <img src="screenshots/settings.jpg" width="220"> |  
 
 
 
