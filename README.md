@@ -23,7 +23,6 @@ It supports **authentication, live messaging, profile management, and notificati
 ## 📸 Screenshots  
  
 
-## 📸 Screenshots  
 
 | Login | Reset Password | Chats |
 |-------|----------------|-------|
@@ -31,7 +30,7 @@ It supports **authentication, live messaging, profile management, and notificati
 
 | Chat View | Explore | Sidebar Menu |
 |-----------|---------|--------------|
-| <img src="screenshots/chatview.jpg" width="220"> | <img src="screenshots/explore.jpg" width="220"> | <img src="screenshots/menu.jpg" width="220"> |
+| <img src="screenshots/chat.jpg" width="220"> | <img src="screenshots/explore.jpg" width="220"> | <img src="screenshots/menu.jpg" width="220"> |
 
 | Settings |   |   |
 |----------|---|---|
