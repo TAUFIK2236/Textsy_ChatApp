@@ -1,6 +1,6 @@
 # 📱 Textsy – SwiftUI Chat App  
 
-Textsy is a modern **SwiftUI chat application** built with **MVVM architecture**, **Singleton pattern**, and **Firebase (Auth + Firestore realtime listeners)**.  
+Textsy is a demo **SwiftUI chat application** built with **MVVM architecture**, **Singleton pattern**, and **Firebase (Auth + Firestore realtime listeners)**.  
 
 It supports **authentication, live messaging, profile management, and notifications**, all in a clean **dark-mode UI**.  
 
