@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 struct LoginView: View {
     //@State private var email = "taufikalislam@gmail.com"
@@ -60,17 +61,9 @@ struct LoginView: View {
                             Task {
                                 await viewModel.login(email: email, password: password)
 
+
                                 if viewModel.errorMessage.isEmpty {
                                     await session.loadUserProfileFromFirestore()
-
-                                    //  Check if profile is filled
-                                    if session.hasCompletedProfile() {
-                                      
-                                        appRouter.goToHome()
-                                    } else {
-                                    
-                                        appRouter.goToProfileEdit(isFromSignUp: true)
-                                    }
                                 }
                             }
                         }) {

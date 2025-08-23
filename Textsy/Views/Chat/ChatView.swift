@@ -7,7 +7,7 @@ struct ChatView: View {
     @Environment(\.dismiss) var dismiss
     @State private var messageText = ""
     @State private var chatTitle = ""
-    @StateObject private var viewModel = ChatSessionViewModel()
+    @StateObject private var viewModel = ChatViewModel()
     @EnvironmentObject var appRouter: AppRouter
     @EnvironmentObject var session : UserSession
     let chatId: String
@@ -63,7 +63,7 @@ struct ChatView: View {
                             ChatBubble(message: ChatBubbleModel(text: msg.text, isMe: msg.senderId == session.uid, time: formatDate(msg.timestamp)))
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal,3)
                     .padding(.top, 10)
                 }
                 .background(Color(.bgc))
@@ -89,7 +89,7 @@ struct ChatView: View {
                         Task {
                             await viewModel.sendMessage(chatId: chatId, text: messageText)
                             messageText = ""
-                            await viewModel.fetchMessages(chatId: chatId)
+                            viewModel.listenToMessages(chatId: chatId)
                         }
                     }) {
                         Image(systemName: "paperplane.fill")
@@ -105,7 +105,7 @@ struct ChatView: View {
             }
             .onAppear {
                 Task {
-                    await viewModel.fetchMessages(chatId: chatId)
+                    viewModel.listenToMessages(chatId: chatId)
                     let chatDoc = try? await Firestore.firestore().collection("chats").document(chatId).getDocument()
                     if let data = chatDoc?.data(),
                        let senderName = data["senderName"] as? String,
@@ -157,13 +157,13 @@ struct ChatBubble: View {
                             .foregroundColor(.blue)
                     }
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 5)
             }
             .frame(maxWidth: .infinity, alignment: message.isMe ? .trailing : .leading)
 
             if !message.isMe { Spacer() }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 5)
     }
 }
 

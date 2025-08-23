@@ -116,7 +116,7 @@ struct NotificationView: View {
                         Task {
                             isProcessing[notif.id] = true
                             
-                            let chatId = ChatSessionViewModel().computeChatId(session.uid, notif.senderId)
+                            let chatId = ChatViewModel().computeChatId(session.uid, notif.senderId)
                           //  let chatId =generateChatId(session.uid, notif.senderId)
                             await notificationVM.sendHiMessage(to: notif.senderId, chatId: chatId, notificationId: notif.id)
                             await notificationVM.markAsResponded(notificationId: notif.id, status: "accepted")

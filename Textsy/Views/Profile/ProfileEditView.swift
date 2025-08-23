@@ -192,13 +192,7 @@ private func topBar(isDrawerOpen: Binding<Bool>) -> some View {
         Image(systemName: "person.crop.circle")
             .font(.title.bold())
             .foregroundColor(.bgc)
-//        Button {
-//            // Future: Profile or settings
-//        } label: {
-//            Image(systemName: "person.crop.circle")
-//                .font(.title.bold())
-//                .foregroundColor(.white)
-//        }
+
     }
     .padding(.bottom)
     .padding(.horizontal)

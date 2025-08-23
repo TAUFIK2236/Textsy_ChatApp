@@ -154,7 +154,7 @@ struct UserProfileView: View {
                                 Button {
                                     Task {
                                         // Step 1: Create a unique and consistent chatId
-                                        let chatVM = ChatSessionViewModel()
+                                        let chatVM = ChatViewModel()
                                         let chatId = chatVM.computeChatId(session.uid, user.id)
 
 

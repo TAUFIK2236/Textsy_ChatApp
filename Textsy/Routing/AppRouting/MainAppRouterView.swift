@@ -18,24 +18,20 @@ struct MainAppRouterView: View {
         
 
         
+        // MainAppRouterView.swift (top Color.clear helper view)
         Color.clear
             .onAppear {
-                if session.hasCompletedProfile() {
-                    appRouter.currentPage = .home
-                } else {
-                    appRouter.currentPage = .profileEdit(isFromSignUp: true)
-                }
                 print("👤 Logged in as: \(session.uid)")
-
-                // ✅ Start listening no matter which page we're on!
                 notificationVM.listenForNotifications(for: session.uid)
+                // If already loaded (e.g., returning after login), route immediately
+                if session.isProfileLoaded { routeBasedOnProfile() }
             }
-
-
-            .onChange(of: session.isProfileLoaded, initial: false) { _, _ in
+            .onChange(of: session.isProfileLoaded, initial: false) { _, loaded in
+                guard loaded else { return }
                 routeBasedOnProfile()
             }
             .hidden()
+
 
 
 
