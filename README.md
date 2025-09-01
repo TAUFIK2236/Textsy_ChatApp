@@ -80,10 +80,3 @@ I’ll review and fix problems directly in the repo.
 
 ---
 
-## 🚀 Author  
-
-**Taufik Shahaf**  
-- 📧 Contact via GitHub issues  
-- 🛠️ Always learning & improving  
-
----
