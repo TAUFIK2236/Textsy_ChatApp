@@ -11,6 +11,8 @@ struct ChatView: View {
     @EnvironmentObject var appRouter: AppRouter
     @EnvironmentObject var session : UserSession
     let chatId: String
+    
+    @State private var  lastMessageId :String?
 
     var body: some View {
         GeometryReader { geometry in
@@ -57,17 +59,68 @@ struct ChatView: View {
                 .background(Color(.appbar))
 
                 // Messages
+                ScrollViewReader{ proxy in
                 ScrollView {
                     LazyVStack(spacing: 10) {
-                        ForEach(viewModel.messages) { msg in
-                            ChatBubble(message: ChatBubbleModel(text: msg.text, isMe: msg.senderId == session.uid, time: formatDate(msg.timestamp)))
+                        
+                        
+                        // ⬆️ Load more button at the very top
+                        if viewModel.hasMoreOlder {
+                            Button {
+                                Task {
+                                    // Remember current first visible id to keep position stable (optional)
+                                    let firstIdBefore = viewModel.messages.first?.id
+                                    await viewModel.loadOlder(chatId: chatId)
+
+                                    // After prepending, keep the old first message near top (nice UX)
+                                    if let anchorId = firstIdBefore {
+                                        withAnimation(.easeInOut) {
+                                            proxy.scrollTo(anchorId, anchor: .top)
+                                        }
+                                    }
+                                }
+                            } label: {
+                                Text(viewModel.isloadingMore ? "Loading..." : "Load more")
+                                    .font(.footnote.bold())
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .padding(.vertical, 6)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 8)
                         }
+                        
+                        
+                        ForEach(viewModel.messages) { msg in
+                            ChatBubble(
+                                message: ChatBubbleModel(
+                                    text: msg.text,
+                                    isMe: msg.senderId == session.uid,
+                                    time: formatDate(msg.timestamp)
+                                )
+                            )
+                            .id(msg.id)
+                        }
+                        // Invisible anchor at the bottom for smooth scroll
+                      //  Color.clear.frame(height: 1).id("BOTTOM")
                     }
                     .padding(.horizontal,3)
                     .padding(.top, 10)
                 }
                 .background(Color(.bgc))
-
+                // 🔁 Auto-scroll when messages change (new send/receive)
+                .onChange(of: viewModel.messages.count, initial: false) { _, _ in
+                    // scroll to the last message (BOTTOM anchor)
+                    withAnimation(.easeInOut) {
+                        proxy.scrollTo("BOTTOM", anchor: .bottom)
+                    }
+                }
+                // Also remember last message id for potential fine control (optional)
+                .onChange(of: viewModel.messages.last?.id, initial: false) { _, newVal in
+                    lastMessageId = newVal
+                }
+            }
+                    
+                    
                 // Input field
                 HStack(spacing: 12) {
                     TextField("Message", text: $messageText)
@@ -89,7 +142,7 @@ struct ChatView: View {
                         Task {
                             await viewModel.sendMessage(chatId: chatId, text: messageText)
                             messageText = ""
-                            viewModel.listenToMessages(chatId: chatId)
+                           // viewModel.listenToMessages(chatId: chatId)
                         }
                     }) {
                         Image(systemName: "paperplane.fill")

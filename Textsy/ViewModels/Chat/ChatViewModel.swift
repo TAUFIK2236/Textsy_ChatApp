@@ -12,6 +12,12 @@ class ChatViewModel: ObservableObject {
 
     // 💬 Realtime messages in one chat
     @Published var messages: [MessageModel] = []
+    private let pageSize = 20
+    private var newestTimeStemp: Timestamp?
+    private var oldestDoc: DocumentSnapshot?
+    private var newerListener: ListenerRegistration?
+    @Published var hasMoreOlder = true
+    @Published var isloadingMore = false
 
     private var chatListListener: ListenerRegistration?
     private var messageListener: ListenerRegistration?
@@ -43,23 +49,117 @@ class ChatViewModel: ObservableObject {
 
     // MARK: - Realtime message listener (ChatView)
     func listenToMessages(chatId: String) {
+        newerListener?.remove()
         messageListener?.remove()
         messages.removeAll()
+        newestTimeStemp = nil
+        oldestDoc = nil
+        hasMoreOlder = true
 
         messageListener = db.collection("chats")
             .document(chatId)
             .collection("messages")
-            .order(by: "timestamp", descending: false)
+            .order(by: "timestamp", descending: true)
+            .limit(to: pageSize)
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self else { return }
                 if let error = error {
                     self.errorMessage = "❌ Message listener failed: \(error.localizedDescription)"
                     return
                 }
-                guard let docs = snapshot?.documents else { return }
-                self.messages = docs.compactMap { MessageModel(id: $0.documentID, data: $0.data()) }
+                guard let docs = snapshot?.documents,!docs.isEmpty
+                else {
+                    self.messages = []
+                    self.hasMoreOlder = false
+                    return
+                }
+                // Cursor bookkeeping
+                        self.oldestDoc = docs.last                          // oldest in this page
+                        self.newestTimeStemp = (docs.first?["timestamp"] as? Timestamp) // newest in this page
+
+                        // We display oldest→newest (bottom is newest), so reverse to ASC
+                        let page = docs.reversed().compactMap {
+                            MessageModel(id: $0.documentID, data: $0.data())
+                        }
+                        self.messages = page
+
+                        // 2) Start a second listener that ONLY listens to messages newer than the current newest
+                        self.attachNewerListener(chatId: chatId)
+                //self.messages = docs.compactMap { MessageModel(id: $0.documentID, data: $0.data()) }
             }
     }
+    
+    
+    // MARK: - NEW: Only listen to messages with timestamp > newestTimeStemp (append only)
+    private func attachNewerListener(chatId: String) {
+        guard let after = newestTimeStemp else { return }
+
+        newerListener?.remove()
+        newerListener = db.collection("chats")
+            .document(chatId)
+            .collection("messages")
+            .whereField("timestamp", isGreaterThan: after)
+            .order(by: "timestamp", descending: false) // ascending to append in order
+            .addSnapshotListener { [weak self] snap, err in
+                guard let self = self else { return }
+                if let err = err {
+                    self.errorMessage = "❌ Newer-listener failed: \(err.localizedDescription)"
+                    return
+                }
+                guard let docs = snap?.documents, !docs.isEmpty else { return }
+
+                let newItems = docs.compactMap { MessageModel(id: $0.documentID, data: $0.data()) }
+                // Append only the truly new ones
+                self.messages.append(contentsOf: newItems)
+
+                // Move the "newest" cursor forward
+                if let lastTs = docs.last?["timestamp"] as? Timestamp {
+                    self.newestTimeStemp = lastTs
+                }
+            }
+    }
+    
+    // MARK: - NEW: Load older page (20 more), prepend to the top
+    func loadOlder(chatId: String) async {
+        guard hasMoreOlder, !isloadingMore else { return }
+        isloadingMore = true
+        defer { isloadingMore = false }
+
+        var query = db.collection("chats")
+            .document(chatId)
+            .collection("messages")
+            .order(by: "timestamp", descending: true)
+            .limit(to: pageSize)
+
+        if let cursor = oldestDoc {
+            query = query.start(afterDocument: cursor) // continue further back in time
+        }
+
+        do {
+            let snap = try await query.getDocuments()
+            let docs = snap.documents
+            if docs.isEmpty {
+                hasMoreOlder = false
+                return
+            }
+
+            // Update the "oldest" cursor to this page's last document
+            oldestDoc = docs.last
+
+            // Convert and reverse (DESC → ASC) so we can PREPEND in correct display order
+            let olderAsc = docs.reversed().compactMap { MessageModel(id: $0.documentID, data: $0.data()) }
+
+            // Prepend at the front (older items go above)
+            self.messages.insert(contentsOf: olderAsc, at: 0)
+
+            // If we got fewer than a page, we might be done
+            if docs.count < pageSize { hasMoreOlder = false }
+        } catch {
+            self.errorMessage = "❌ Older page failed: \(error.localizedDescription)"
+        }
+    }
+
+    
 
     // MARK: - Send message
     func sendMessage(chatId: String, text: String) async {
