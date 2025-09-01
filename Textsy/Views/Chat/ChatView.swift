@@ -59,67 +59,119 @@ struct ChatView: View {
                 .background(Color(.appbar))
 
                 // Messages
-                ScrollViewReader{ proxy in
-                ScrollView {
-                    LazyVStack(spacing: 10) {
-                        
-                        
-                        // ⬆️ Load more button at the very top
-                        if viewModel.hasMoreOlder {
-                            Button {
-                                Task {
-                                    // Remember current first visible id to keep position stable (optional)
-                                    let firstIdBefore = viewModel.messages.first?.id
-                                    await viewModel.loadOlder(chatId: chatId)
+//                ScrollViewReader{ proxy in
+//                ScrollView {
+//                    LazyVStack(spacing: 10) {
+//                        
+//                        
+//                        // ⬆️ Load more button at the very top
+//                        if viewModel.hasMoreOlder {
+//                            Button {
+//                                Task {
+//                                    // Remember current first visible id to keep position stable (optional)
+//                                    let firstIdBefore = viewModel.messages.first?.id
+//                                    await viewModel.loadOlder(chatId: chatId)
+//
+//                                    // After prepending, keep the old first message near top (nice UX)
+//                                    if let anchorId = firstIdBefore {
+//                                        withAnimation(.easeInOut) {
+//                                            proxy.scrollTo(anchorId, anchor: .top)
+//                                        }
+//                                    }
+//                                }
+//                            } label: {
+//                                Text(viewModel.isloadingMore ? "Loading..." : "Load more")
+//                                    .font(.footnote.bold())
+//                                    .foregroundColor(.white.opacity(0.9))
+//                                    .padding(.vertical, 6)
+//                            }
+//                            .frame(maxWidth: .infinity)
+//                            .padding(.top, 8)
+//                        }
+//                        
+//                        
+//                        ForEach(viewModel.messages) { msg in
+//                            ChatBubble(
+//                                message: ChatBubbleModel(
+//                                    text: msg.text,
+//                                    isMe: msg.senderId == session.uid,
+//                                    time: formatDate(msg.timestamp)
+//                                )
+//                            )
+//                            .id(msg.id)
+//                        }
+//                        // Invisible anchor at the bottom for smooth scroll
+//                      //  Color.clear.frame(height: 1).id("BOTTOM")
+//                    }
+//                    .padding(.horizontal,3)
+//                    .padding(.top, 10)
+//                }
+//                .background(Color(.bgc))
+//                // 🔁 Auto-scroll when messages change (new send/receive)
+//                .onChange(of: viewModel.messages.count, initial: false) { _, _ in
+//                    // scroll to the last message (BOTTOM anchor)
+//                    withAnimation(.easeInOut) {
+//                        proxy.scrollTo("BOTTOM", anchor: .bottom)
+//                    }
+//                }
+//                // Also remember last message id for potential fine control (optional)
+//                .onChange(of: viewModel.messages.last?.id, initial: false) { _, newVal in
+//                    lastMessageId = newVal
+//                }
+//            }
+                
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            if viewModel.isloadingMore {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                            }
 
-                                    // After prepending, keep the old first message near top (nice UX)
-                                    if let anchorId = firstIdBefore {
-                                        withAnimation(.easeInOut) {
-                                            proxy.scrollTo(anchorId, anchor: .top)
+                            ForEach(viewModel.messages.indices, id: \.self) { index in
+                                let msg = viewModel.messages[index]
+
+                                ChatBubble(
+                                    message: ChatBubbleModel(
+                                        text: msg.text,
+                                        isMe: msg.senderId == session.uid,
+                                        time: formatDate(msg.timestamp)
+                                    )
+                                )
+                                .id(msg.id)
+                                .onAppear {
+                                    // 👆 Auto-load older when 1st visible item appears
+                                    if index == 0 && viewModel.hasMoreOlder && !viewModel.isloadingMore {
+                                        Task {
+                                            await viewModel.loadOlder(chatId: chatId)
                                         }
                                     }
                                 }
-                            } label: {
-                                Text(viewModel.isloadingMore ? "Loading..." : "Load more")
-                                    .font(.footnote.bold())
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .padding(.vertical, 6)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 8)
+
+                            // ✅ Visible bottom anchor to enable scrollTo("BOTTOM")
+                            Text("↓ New Messages")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                                .padding(.top, 4)
+                                .id("BOTTOM")
                         }
-                        
-                        
-                        ForEach(viewModel.messages) { msg in
-                            ChatBubble(
-                                message: ChatBubbleModel(
-                                    text: msg.text,
-                                    isMe: msg.senderId == session.uid,
-                                    time: formatDate(msg.timestamp)
-                                )
-                            )
-                            .id(msg.id)
-                        }
-                        // Invisible anchor at the bottom for smooth scroll
-                      //  Color.clear.frame(height: 1).id("BOTTOM")
+                        .padding(.horizontal, 3)
+                        .padding(.top, 10)
                     }
-                    .padding(.horizontal,3)
-                    .padding(.top, 10)
-                }
-                .background(Color(.bgc))
-                // 🔁 Auto-scroll when messages change (new send/receive)
-                .onChange(of: viewModel.messages.count, initial: false) { _, _ in
-                    // scroll to the last message (BOTTOM anchor)
-                    withAnimation(.easeInOut) {
-                        proxy.scrollTo("BOTTOM", anchor: .bottom)
+                    .background(Color(.bgc))
+                    // ✅ Auto-scroll only when new messages arrive
+                    .onChange(of: viewModel.messages.last?.id, initial: false) { _, _ in
+                        withAnimation(.easeInOut) {
+                            proxy.scrollTo("BOTTOM", anchor: .bottom)
+                        }
                     }
                 }
-                // Also remember last message id for potential fine control (optional)
-                .onChange(of: viewModel.messages.last?.id, initial: false) { _, newVal in
-                    lastMessageId = newVal
-                }
-            }
-                    
+
+                
+//
                     
                 // Input field
                 HStack(spacing: 12) {
