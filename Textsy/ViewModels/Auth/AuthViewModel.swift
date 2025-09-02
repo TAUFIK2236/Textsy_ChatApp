@@ -49,6 +49,7 @@ class AuthViewModel: ObservableObject {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             UserSession.shared.loadFromFirebaseUser(result.user)
             print("Accont created: \(result.user.email ?? "")")
+        
         } catch{
             errorMessage = error.localizedDescription
             print("SignUp error: \(errorMessage)")

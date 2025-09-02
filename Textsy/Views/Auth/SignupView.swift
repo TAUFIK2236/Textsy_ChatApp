@@ -72,9 +72,9 @@ struct SignupView: View {
                             }
                             Task {
                                 await viewModel.signup(email: email, password: password)
-                                //if sign-up succeed, go to profile edit page
+                                await session.loadUserProfileFromFirestore() 
+
                                 if viewModel.errorMessage.isEmpty {
-                      
                                     appRouter.goToProfileEdit(isFromSignUp: true)
                                 }
                             }
@@ -107,6 +107,10 @@ struct SignupView: View {
                     .padding(.vertical)
                 }
                 
+                if viewModel.isLoading {
+                    LoadingCircleView()
+                }
+                
                 if !viewModel.errorMessage.isEmpty {
                     AlertCardView(
                         title: "Oops!",
@@ -123,9 +127,7 @@ struct SignupView: View {
                     .animation(.spring(response: 0.35, dampingFraction: 0.85),
                                value: viewModel.errorMessage.isEmpty)
                 }
-                if viewModel.isLoading {
-                    LoadingCircleView()
-                }
+
 
 
             }
