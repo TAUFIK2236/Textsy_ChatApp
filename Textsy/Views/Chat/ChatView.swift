@@ -1,4 +1,3 @@
-
 import SwiftUI
 import FirebaseFirestore
 
@@ -8,10 +7,11 @@ struct ChatView: View {
     @State private var chatTitle = ""
     @StateObject private var viewModel = ChatViewModel()
     @EnvironmentObject var appRouter: AppRouter
-    @EnvironmentObject var session : UserSession
+    @EnvironmentObject var session: UserSession
     let chatId: String
-    
+
     @State private var showNewMessageButton = false
+    @State private var hasScrolledToBottomOnce = false
 
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
@@ -22,45 +22,12 @@ struct ChatView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-
                 // 🔝 Top Bar
-                HStack {
-                    Button(action: {
-                        withAnimation {
-                            appRouter.currentPage = .home
-                        }
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.title2.bold())
-                            .foregroundColor(.white)
+                ChatTopBar(chatTitle: chatTitle) {
+                    withAnimation {
+                        appRouter.currentPage = .home
                     }
-
-                    Image("profile")
-                        .resizable()
-                        .frame(width: 40, height: 40)
-                        .clipShape(Circle())
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(chatTitle)
-                            .foregroundColor(.white)
-                            .font(.headline.bold())
-                        Text("online")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                    }
-
-                    Spacer()
-
-                    HStack(spacing: 20) {
-                        Image(systemName: "video.fill")
-                        Image(systemName: "phone.fill")
-                        Image(systemName: "ellipsis")
-                    }
-                    .foregroundColor(.white)
                 }
-                .padding(.bottom)
-                .padding(.horizontal, 10)
-                .background(Color(.appbar))
 
                 // 💬 Messages
                 ScrollViewReader { proxy in
@@ -68,20 +35,14 @@ struct ChatView: View {
                         ScrollView {
                             LazyVStack(spacing: 10) {
                                 ForEach(viewModel.messages, id: \.id) { msg in
-                                    ChatBubble(message: ChatBubbleModel(
-                                        text: msg.text,
+                                    MessageRow(
+                                        msg: msg,
                                         isMe: msg.senderId == session.uid,
-                                        time: formatDate(msg.timestamp)
-                                    ))
-                                    .id(msg.id)
-                                    .onAppear {
-                                        // 🪜 Auto-load older messages
-                                        if msg.id == viewModel.messages.first?.id,
-                                           viewModel.hasMoreOlder,
-                                           !viewModel.isloadingMore {
-                                            Task { await viewModel.loadOlder(chatId: chatId) }
-                                        }
-                                    }
+                                        time: formatDate(msg.timestamp),
+                                        chatId: chatId,
+                                        viewModel: viewModel,
+                                        loadOlderEnabled: hasScrolledToBottomOnce
+                                    )
                                 }
 
                                 // 👇 Anchor for scroll-to-bottom
@@ -95,7 +56,7 @@ struct ChatView: View {
                                     DispatchQueue.main.async {
                                         let offset = geo.frame(in: .named("scroll")).maxY
                                         let screenHeight = UIScreen.main.bounds.height
-                                        showNewMessageButton = offset > screenHeight * 0.9
+                                        showNewMessageButton = offset > screenHeight * 0.8
                                     }
                                     return Color.clear
                                 }
@@ -124,7 +85,7 @@ struct ChatView: View {
                             .padding()
                         }
                     }
-                    // ✅ Scroll to bottom when page opens
+                    // ✅ Scroll to bottom once on appear
                     .onAppear {
                         Task {
                             viewModel.listenToMessages(chatId: chatId)
@@ -134,7 +95,8 @@ struct ChatView: View {
                                 proxy.scrollTo("BOTTOM", anchor: .bottom)
                             }
 
-                            // Load chat title
+                            hasScrolledToBottomOnce = true
+
                             let chatDoc = try? await Firestore.firestore()
                                 .collection("chats")
                                 .document(chatId)
@@ -157,7 +119,7 @@ struct ChatView: View {
                         .foregroundColor(.white)
 
                     Button {
-                        // send image (later)
+                        // future: send image
                     } label: {
                         Image(systemName: "photo")
                             .padding(10)
@@ -187,6 +149,76 @@ struct ChatView: View {
     }
 }
 
+// ✅ Chat top bar
+private struct ChatTopBar: View {
+    let chatTitle: String
+    let backAction: () -> Void
+
+    var body: some View {
+        HStack {
+            Button(action: backAction) {
+                Image(systemName: "chevron.left")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+            }
+
+            Image("profile")
+                .resizable()
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(chatTitle)
+                    .foregroundColor(.white)
+                    .font(.headline.bold())
+                Text("online")
+                    .foregroundColor(.gray)
+                    .font(.caption)
+            }
+
+            Spacer()
+
+            HStack(spacing: 20) {
+                Image(systemName: "video.fill")
+                Image(systemName: "phone.fill")
+                Image(systemName: "ellipsis")
+            }
+            .foregroundColor(.white)
+        }
+        .padding(.bottom)
+        .padding(.horizontal, 10)
+        .background(Color(.appbar))
+    }
+}
+
+// ✅ Message row with smart load logic
+private struct MessageRow: View {
+    let msg: MessageModel
+    let isMe: Bool
+    let time: String
+    let chatId: String
+    let viewModel: ChatViewModel
+    let loadOlderEnabled: Bool
+
+    var body: some View {
+        ChatBubble(message: ChatBubbleModel(
+            text: msg.text,
+            isMe: isMe,
+            time: time
+        ))
+        .id(msg.id)
+        .onAppear {
+            if loadOlderEnabled,
+               msg.id == viewModel.messages.first?.id,
+               viewModel.hasMoreOlder,
+               !viewModel.isloadingMore {
+                Task { await viewModel.loadOlder(chatId: chatId) }
+            }
+        }
+    }
+}
+
+// 💬 Chat bubble UI
 struct ChatBubbleModel: Identifiable {
     let id = UUID()
     let text: String
