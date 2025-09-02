@@ -2,9 +2,9 @@ import SwiftUI
 import FirebaseAuth
 
 struct LoginView: View {
-    //@State private var email = "taufikalislam@gmail.com"
-    @State private var email = ""
-    @State private var password = ""
+    @State private var email = "taufikalislam@gmail.com"
+   // @State private var email = ""
+    @State private var password = "12345678"
     @StateObject private var viewModel = AuthViewModel()
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var router: AuthRouter

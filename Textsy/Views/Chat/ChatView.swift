@@ -1,7 +1,6 @@
-import SwiftUI
-import Foundation
-import FirebaseFirestore
 
+import SwiftUI
+import FirebaseFirestore
 
 struct ChatView: View {
     @Environment(\.dismiss) var dismiss
@@ -12,17 +11,23 @@ struct ChatView: View {
     @EnvironmentObject var session : UserSession
     let chatId: String
     
-    @State private var  lastMessageId :String?
+    @State private var showNewMessageButton = false
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
 
-                // Custom Top Bar
+                // 🔝 Top Bar
                 HStack {
                     Button(action: {
                         withAnimation {
-                            appRouter.currentPage = .home // or .notification
+                            appRouter.currentPage = .home
                         }
                     }) {
                         Image(systemName: "chevron.left")
@@ -39,7 +44,6 @@ struct ChatView: View {
                         Text(chatTitle)
                             .foregroundColor(.white)
                             .font(.headline.bold())
-
                         Text("online")
                             .foregroundColor(.gray)
                             .font(.caption)
@@ -55,125 +59,96 @@ struct ChatView: View {
                     .foregroundColor(.white)
                 }
                 .padding(.bottom)
-                .padding(.horizontal,10)
+                .padding(.horizontal, 10)
                 .background(Color(.appbar))
 
-                // Messages
-//                ScrollViewReader{ proxy in
-//                ScrollView {
-//                    LazyVStack(spacing: 10) {
-//                        
-//                        
-//                        // ⬆️ Load more button at the very top
-//                        if viewModel.hasMoreOlder {
-//                            Button {
-//                                Task {
-//                                    // Remember current first visible id to keep position stable (optional)
-//                                    let firstIdBefore = viewModel.messages.first?.id
-//                                    await viewModel.loadOlder(chatId: chatId)
-//
-//                                    // After prepending, keep the old first message near top (nice UX)
-//                                    if let anchorId = firstIdBefore {
-//                                        withAnimation(.easeInOut) {
-//                                            proxy.scrollTo(anchorId, anchor: .top)
-//                                        }
-//                                    }
-//                                }
-//                            } label: {
-//                                Text(viewModel.isloadingMore ? "Loading..." : "Load more")
-//                                    .font(.footnote.bold())
-//                                    .foregroundColor(.white.opacity(0.9))
-//                                    .padding(.vertical, 6)
-//                            }
-//                            .frame(maxWidth: .infinity)
-//                            .padding(.top, 8)
-//                        }
-//                        
-//                        
-//                        ForEach(viewModel.messages) { msg in
-//                            ChatBubble(
-//                                message: ChatBubbleModel(
-//                                    text: msg.text,
-//                                    isMe: msg.senderId == session.uid,
-//                                    time: formatDate(msg.timestamp)
-//                                )
-//                            )
-//                            .id(msg.id)
-//                        }
-//                        // Invisible anchor at the bottom for smooth scroll
-//                      //  Color.clear.frame(height: 1).id("BOTTOM")
-//                    }
-//                    .padding(.horizontal,3)
-//                    .padding(.top, 10)
-//                }
-//                .background(Color(.bgc))
-//                // 🔁 Auto-scroll when messages change (new send/receive)
-//                .onChange(of: viewModel.messages.count, initial: false) { _, _ in
-//                    // scroll to the last message (BOTTOM anchor)
-//                    withAnimation(.easeInOut) {
-//                        proxy.scrollTo("BOTTOM", anchor: .bottom)
-//                    }
-//                }
-//                // Also remember last message id for potential fine control (optional)
-//                .onChange(of: viewModel.messages.last?.id, initial: false) { _, newVal in
-//                    lastMessageId = newVal
-//                }
-//            }
-                
+                // 💬 Messages
                 ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 10) {
-                            if viewModel.isloadingMore {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                            }
-
-                            ForEach(viewModel.messages.indices, id: \.self) { index in
-                                let msg = viewModel.messages[index]
-
-                                ChatBubble(
-                                    message: ChatBubbleModel(
+                    ZStack(alignment: .bottomTrailing) {
+                        ScrollView {
+                            LazyVStack(spacing: 10) {
+                                ForEach(viewModel.messages, id: \.id) { msg in
+                                    ChatBubble(message: ChatBubbleModel(
                                         text: msg.text,
                                         isMe: msg.senderId == session.uid,
                                         time: formatDate(msg.timestamp)
-                                    )
-                                )
-                                .id(msg.id)
-                                .onAppear {
-                                    // 👆 Auto-load older when 1st visible item appears
-                                    if index == 0 && viewModel.hasMoreOlder && !viewModel.isloadingMore {
-                                        Task {
-                                            await viewModel.loadOlder(chatId: chatId)
+                                    ))
+                                    .id(msg.id)
+                                    .onAppear {
+                                        // 🪜 Auto-load older messages
+                                        if msg.id == viewModel.messages.first?.id,
+                                           viewModel.hasMoreOlder,
+                                           !viewModel.isloadingMore {
+                                            Task { await viewModel.loadOlder(chatId: chatId) }
                                         }
                                     }
                                 }
+
+                                // 👇 Anchor for scroll-to-bottom
+                                Color.clear.frame(height: 1).id("BOTTOM")
+                            }
+                            .padding(.horizontal, 3)
+                            .padding(.top, 10)
+                            .background(Color(.bgc))
+                            .background(
+                                GeometryReader { geo -> Color in
+                                    DispatchQueue.main.async {
+                                        let offset = geo.frame(in: .named("scroll")).maxY
+                                        let screenHeight = UIScreen.main.bounds.height
+                                        showNewMessageButton = offset > screenHeight * 0.9
+                                    }
+                                    return Color.clear
+                                }
+                            )
+                        }
+                        .coordinateSpace(name: "scroll")
+
+                        // 🔄 Auto scroll when new message added
+                        .onChange(of: viewModel.messages.last?.id, initial: false) { _, _ in
+                            withAnimation {
+                                proxy.scrollTo("BOTTOM", anchor: .bottom)
+                            }
+                        }
+
+                        // 🔘 Floating Jump-to-Bottom Button
+                        if showNewMessageButton {
+                            Button {
+                                proxy.scrollTo("BOTTOM", anchor: .bottom)
+                            } label: {
+                                Image(systemName: "chevron.down.circle.fill")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(.green)
+                                    .shadow(radius: 3)
+                            }
+                            .padding()
+                        }
+                    }
+                    // ✅ Scroll to bottom when page opens
+                    .onAppear {
+                        Task {
+                            viewModel.listenToMessages(chatId: chatId)
+
+                            try? await Task.sleep(nanoseconds: 400_000_000)
+                            withAnimation {
+                                proxy.scrollTo("BOTTOM", anchor: .bottom)
                             }
 
-                            // ✅ Visible bottom anchor to enable scrollTo("BOTTOM")
-                            Text("↓ New Messages")
-                                .font(.caption2)
-                                .foregroundColor(.gray)
-                                .padding(.top, 4)
-                                .id("BOTTOM")
-                        }
-                        .padding(.horizontal, 3)
-                        .padding(.top, 10)
-                    }
-                    .background(Color(.bgc))
-                    // ✅ Auto-scroll only when new messages arrive
-                    .onChange(of: viewModel.messages.last?.id, initial: false) { _, _ in
-                        withAnimation(.easeInOut) {
-                            proxy.scrollTo("BOTTOM", anchor: .bottom)
+                            // Load chat title
+                            let chatDoc = try? await Firestore.firestore()
+                                .collection("chats")
+                                .document(chatId)
+                                .getDocument()
+                            if let data = chatDoc?.data(),
+                               let senderName = data["senderName"] as? String,
+                               let receiverName = data["receiverName"] as? String {
+                                self.chatTitle = (senderName == session.name) ? receiverName : senderName
+                            }
                         }
                     }
                 }
 
-                
-//
-                    
-                // Input field
+                // 📝 Input Bar
                 HStack(spacing: 12) {
                     TextField("Message", text: $messageText)
                         .padding(10)
@@ -181,22 +156,22 @@ struct ChatView: View {
                         .cornerRadius(25)
                         .foregroundColor(.white)
 
-                    Button(action: {
-                        // TODO: Send image
-                    }) {
+                    Button {
+                        // send image (later)
+                    } label: {
                         Image(systemName: "photo")
                             .padding(10)
                             .background(Color.green)
                             .clipShape(Circle())
                             .foregroundColor(.white)
                     }
-                    Button(action: {
+
+                    Button {
                         Task {
                             await viewModel.sendMessage(chatId: chatId, text: messageText)
                             messageText = ""
-                           // viewModel.listenToMessages(chatId: chatId)
                         }
-                    }) {
+                    } label: {
                         Image(systemName: "paperplane.fill")
                             .padding(10)
                             .background(Color.green)
@@ -208,24 +183,7 @@ struct ChatView: View {
                 .padding(.vertical, 10)
                 .background(Color(.bgc))
             }
-            .onAppear {
-                Task {
-                    viewModel.listenToMessages(chatId: chatId)
-                    let chatDoc = try? await Firestore.firestore().collection("chats").document(chatId).getDocument()
-                    if let data = chatDoc?.data(),
-                       let senderName = data["senderName"] as? String,
-                       let receiverName = data["receiverName"] as? String {
-                        self.chatTitle = (senderName == session.name) ? receiverName : senderName
-                    }
-                }
-            }
         }
-    }
-
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
     }
 }
 
@@ -240,10 +198,10 @@ struct ChatBubble: View {
     let message: ChatBubbleModel
 
     var body: some View {
-        HStack (alignment:message.isMe ? .lastTextBaseline : .firstTextBaseline ){
+        HStack(alignment: message.isMe ? .lastTextBaseline : .firstTextBaseline) {
             if message.isMe { Spacer() }
 
-            VStack(alignment: message.isMe ? .trailing: .leading, spacing: 4) {
+            VStack(alignment: message.isMe ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .foregroundColor(.white)
                     .padding()
@@ -271,5 +229,3 @@ struct ChatBubble: View {
         .padding(.horizontal, 5)
     }
 }
-
-
