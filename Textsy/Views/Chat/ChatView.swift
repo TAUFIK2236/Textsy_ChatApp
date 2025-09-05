@@ -56,7 +56,7 @@ struct ChatView: View {
                                     DispatchQueue.main.async {
                                         let offset = geo.frame(in: .named("scroll")).maxY
                                         let screenHeight = UIScreen.main.bounds.height
-                                        showNewMessageButton = offset > screenHeight * 0.8
+                                        showNewMessageButton = offset > screenHeight * 0.9
                                     }
                                     return Color.clear
                                 }
