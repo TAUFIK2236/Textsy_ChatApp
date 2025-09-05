@@ -15,6 +15,7 @@ struct ChatModel: Identifiable, Codable {
     let profileImageURL: String
     let lastMessage: String
     let timeStamp: Date
+    let hiddenFor: [String]
 
     init(id: String, data: [String: Any]) {
         self.id = id
@@ -27,6 +28,7 @@ struct ChatModel: Identifiable, Codable {
         self.profileImageURL = data["profileImageURL"] as? String ?? ""
         self.lastMessage = data["lastMessage"] as? String ?? ""
         self.timeStamp = (data["timeStamp"] as? Timestamp)?.dateValue() ?? Date()
+        self.hiddenFor = data["hiddenFor"] as? [String] ?? []
     }
 }
 
@@ -40,6 +42,7 @@ struct MessageModel: Identifiable, Codable {
     var receiverName: String
     var text: String
     var timestamp: Date
+    var deletedFor: [String]
 
     init?(id: String, data: [String: Any]) {
         guard
@@ -49,6 +52,8 @@ struct MessageModel: Identifiable, Codable {
             let receiverName = data["receiverName"] as? String,
             let text = data["text"] as? String,
             let timestamp = data["timestamp"] as? Timestamp
+        
+                
         else {
             return nil
         }
@@ -60,8 +65,10 @@ struct MessageModel: Identifiable, Codable {
         self.receiverName = receiverName
         self.text = text
         self.timestamp = timestamp.dateValue()
+        self.deletedFor = data["deleteFor"] as? [String] ?? []
     }
-
+    
+//use this when saving/updating a message to Firestore
     var asDictionary: [String: Any] {
         return [
             "senderId": senderId,
@@ -69,7 +76,8 @@ struct MessageModel: Identifiable, Codable {
             "senderName": senderName,
             "receiverName": receiverName,
             "text": text,
-            "timestamp": Timestamp(date: timestamp)
+            "timestamp": Timestamp(date: timestamp),
+            "deletedFor": deletedFor
         ]
     }
 }

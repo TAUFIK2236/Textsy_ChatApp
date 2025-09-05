@@ -81,7 +81,9 @@ class ChatViewModel: ObservableObject {
                         let page = docs.reversed().compactMap {
                             MessageModel(id: $0.documentID, data: $0.data())
                         }
-                        self.messages = page
+                      //  self.messages = page
+                self.messages = page.filter { !($0.deletedFor.contains(Auth.auth().currentUser?.uid ?? "")) }
+
 
                         // 2) Start a second listener that ONLY listens to messages newer than the current newest
                         self.attachNewerListener(chatId: chatId)
@@ -182,7 +184,8 @@ class ChatViewModel: ObservableObject {
                 "senderName": (uid == senderId) ? senderName : receiverName,
                 "receiverName": (uid == senderId) ? receiverName : senderName,
                 "text": trimmed,
-                "timestamp": Timestamp(date: Date())
+                "timestamp": Timestamp(date: Date()),
+                "deletedFor":[]
             ]
 
             try await chatRef.collection("messages").addDocument(data: messageData)
@@ -195,6 +198,39 @@ class ChatViewModel: ObservableObject {
             errorMessage = "❌ Failed to send message: \(error.localizedDescription)"
         }
     }
+    
+    
+    func deleteMessageForUser(chatId: String, messageId: String, userId: String) async {
+        let ref = db.collection("chats").document(chatId).collection("messages").document(messageId)
+
+        do {
+            // 1️⃣ Get current deletedFor array
+            let snapshot = try await ref.getDocument()
+            guard var data = snapshot.data() else { return }
+            var deletedFor = data["deletedFor"] as? [String] ?? []
+
+            // 2️⃣ Add this user to the array (if not already)
+            if !deletedFor.contains(userId) {
+                deletedFor.append(userId)
+            }
+
+            // 3️⃣ Check if BOTH sender and receiver have deleted
+            let sender = data["senderId"] as? String ?? ""
+            let receiver = data["receiverId"] as? String ?? ""
+
+            if deletedFor.contains(sender) && deletedFor.contains(receiver) {
+                // 💥 Both deleted → PERMANENT DELETE
+                try await ref.delete()
+            } else {
+                // 📝 Update deletedFor field
+                try await ref.updateData(["deletedFor": deletedFor])
+            }
+
+        } catch {
+            errorMessage = "❌ Failed to delete message: \(error.localizedDescription)"
+        }
+    }
+
 
     // MARK: - Create chat if not exists
     func createChatIfNotExists(
