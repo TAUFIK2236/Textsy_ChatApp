@@ -65,7 +65,8 @@ struct MessageModel: Identifiable, Codable {
         self.receiverName = receiverName
         self.text = text
         self.timestamp = timestamp.dateValue()
-        self.deletedFor = data["deleteFor"] as? [String] ?? []
+        self.deletedFor = data["deletedFor"] as? [String] ?? []
+
     }
     
 //use this when saving/updating a message to Firestore

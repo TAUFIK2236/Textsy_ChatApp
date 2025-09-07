@@ -199,6 +199,7 @@ private struct MessageRow: View {
     let chatId: String
     let viewModel: ChatViewModel
     let loadOlderEnabled: Bool
+    @EnvironmentObject var session: UserSession
 
     var body: some View {
         ChatBubble(message: ChatBubbleModel(
@@ -213,6 +214,21 @@ private struct MessageRow: View {
                viewModel.hasMoreOlder,
                !viewModel.isloadingMore {
                 Task { await viewModel.loadOlder(chatId: chatId) }
+            }
+        }
+        .contextMenu {
+            Button(role: .destructive) {
+                Task {
+                    await viewModel.deleteMessageForUser(
+                        chatId: chatId,
+                        messageId: msg.id,
+                        userId: session.uid
+                    )
+                    // ⬇️ NEW: remove instantly so it never flashes when returning
+                    viewModel.messages.removeAll { $0.id == msg.id }
+                }
+            } label: {
+                Label("Delete for me", systemImage: "trash")
             }
         }
     }

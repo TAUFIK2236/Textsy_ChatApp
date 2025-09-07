@@ -77,13 +77,13 @@ class ChatViewModel: ObservableObject {
                         self.oldestDoc = docs.last                          // oldest in this page
                         self.newestTimeStemp = (docs.first?["timestamp"] as? Timestamp) // newest in this page
 
-                        // We display oldest→newest (bottom is newest), so reverse to ASC
-                        let page = docs.reversed().compactMap {
-                            MessageModel(id: $0.documentID, data: $0.data())
-                        }
-                      //  self.messages = page
-                self.messages = page.filter { !($0.deletedFor.contains(Auth.auth().currentUser?.uid ?? "")) }
+                let filtered = docs.reversed().compactMap {
+                    MessageModel(id: $0.documentID, data: $0.data())
+                }.filter {
+                    !$0.deletedFor.contains(Auth.auth().currentUser?.uid ?? "")
+                }
 
+                self.messages = filtered
 
                         // 2) Start a second listener that ONLY listens to messages newer than the current newest
                         self.attachNewerListener(chatId: chatId)
@@ -101,7 +101,7 @@ class ChatViewModel: ObservableObject {
             .document(chatId)
             .collection("messages")
             .whereField("timestamp", isGreaterThan: after)
-            .order(by: "timestamp", descending: false) // ascending to append in order
+            .order(by: "timestamp", descending: false)
             .addSnapshotListener { [weak self] snap, err in
                 guard let self = self else { return }
                 if let err = err {
@@ -111,15 +111,20 @@ class ChatViewModel: ObservableObject {
                 guard let docs = snap?.documents, !docs.isEmpty else { return }
 
                 let newItems = docs.compactMap { MessageModel(id: $0.documentID, data: $0.data()) }
-                // Append only the truly new ones
-                self.messages.append(contentsOf: newItems)
 
-                // Move the "newest" cursor forward
+                // ✅ FILTER deleted messages
+                let filtered = newItems.filter {
+                    !$0.deletedFor.contains(Auth.auth().currentUser?.uid ?? "")
+                }
+
+                self.messages.append(contentsOf: filtered)
+
                 if let lastTs = docs.last?["timestamp"] as? Timestamp {
                     self.newestTimeStemp = lastTs
                 }
             }
     }
+
     
     // MARK: - NEW: Load older page (20 more), prepend to the top
     func loadOlder(chatId: String) async {
@@ -148,11 +153,16 @@ class ChatViewModel: ObservableObject {
             // Update the "oldest" cursor to this page's last document
             oldestDoc = docs.last
 
-            // Convert and reverse (DESC → ASC) so we can PREPEND in correct display order
-            let olderAsc = docs.reversed().compactMap { MessageModel(id: $0.documentID, data: $0.data()) }
+            let uid = Auth.auth().currentUser?.uid ?? ""
 
-            // Prepend at the front (older items go above)
-            self.messages.insert(contentsOf: olderAsc, at: 0)
+            let filteredOlderAsc = docs.reversed().compactMap {
+                MessageModel(id: $0.documentID, data: $0.data())
+            }.filter {
+                !$0.deletedFor.contains(uid)
+            }
+
+            self.messages.insert(contentsOf: filteredOlderAsc, at: 0)
+
 
             // If we got fewer than a page, we might be done
             if docs.count < pageSize { hasMoreOlder = false }
@@ -222,8 +232,11 @@ class ChatViewModel: ObservableObject {
                 // 💥 Both deleted → PERMANENT DELETE
                 try await ref.delete()
             } else {
-                // 📝 Update deletedFor field
-                try await ref.updateData(["deletedFor": deletedFor])
+                // 📝 Update deletedFor field + force snapshot refresh
+                try await ref.updateData([
+                    "deletedFor": deletedFor,
+                    "updatedAt": Timestamp(date: Date()) // ✅ Add this to force listener to trigger
+                ])
             }
 
         } catch {
@@ -231,7 +244,7 @@ class ChatViewModel: ObservableObject {
         }
     }
 
-
+ 
     // MARK: - Create chat if not exists
     func createChatIfNotExists(
         chatId: String,
