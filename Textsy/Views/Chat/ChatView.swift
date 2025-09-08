@@ -104,7 +104,11 @@ struct ChatView: View {
                             if let data = chatDoc?.data(),
                                let senderName = data["senderName"] as? String,
                                let receiverName = data["receiverName"] as? String {
-                                self.chatTitle = (senderName == session.name) ? receiverName : senderName
+                                self.chatTitle = session.name == senderName
+                                    ? receiverName
+                                    : (session.name == receiverName
+                                        ? senderName
+                                        : receiverName)
                             }
                         }
                     }

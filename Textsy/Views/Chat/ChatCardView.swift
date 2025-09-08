@@ -24,7 +24,13 @@ struct ChatCardView: View {
 
                 // Name + Last Message
                 VStack(alignment: .leading, spacing: geometry.size.height * 0.01) {
-                    Text(chat.senderName == session.name ? chat.receiverName : chat.senderName)
+                    Text(
+                        session.name == chat.senderName
+                        ? chat.receiverName
+                        : (session.name == chat.receiverName
+                            ? chat.senderName
+                           : chat.receiverName)
+                    )
                         .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                         .foregroundColor(.color)
 
