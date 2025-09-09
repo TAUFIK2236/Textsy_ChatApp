@@ -60,7 +60,10 @@ struct UserProfileView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             .scaleEffect(1.5)
-                            .padding()
+                            
+                    }else{
+                        Spacer()
+                            .frame(height:20)
                     }
 
                     
@@ -118,22 +121,36 @@ struct UserProfileView: View {
                                         ))
                                     }
                                 } label: {
-                                    Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(.green)
-                                        .padding()
-                                        .background(Color.white.opacity(0.1))
-                                        .clipShape(Circle())
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .foregroundColor(.green)
+                                            .padding()
+                                            .background(Color.white.opacity(0.1))
+                                            .clipShape(Circle())
+
+                                        Text("Send")
+                                            .foregroundColor(.gray)
+                                            .font(.caption2)
+                                    }
+
                                 }
 
 
                             case .sent:
                                 HStack(spacing: 20) {
                                     // 🟠 Hourglass Icon
-                                    Image(systemName: "hourglass")
-                                        .foregroundColor(.orange)
-                                        .padding()
-                                        .background(Color.white.opacity(0.1))
-                                        .clipShape(Circle())
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "hourglass")
+                                            .foregroundColor(.orange)
+                                            .padding()
+                                           // .background(Color.white.opacity(0.1))
+                                           // .clipShape(Circle())
+
+                                        Text("Pending")
+                                            .foregroundColor(.white)
+                                            .font(.caption2)
+                                    }
+
 
                                     // ❌ Cancel Button
                                     Button {
@@ -141,11 +158,18 @@ struct UserProfileView: View {
                                             await requestVM.cancelRequest(currentUserId: session.uid, to: user.id)
                                         }
                                     } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.red)
-                                            .padding()
-                                            .background(Color.white.opacity(0.1))
-                                            .clipShape(Circle())
+                                        VStack(spacing: 4) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.red)
+                                                .padding()
+                                                .background(Color.white.opacity(0.1))
+                                                .clipShape(Circle())
+
+                                            Text("Cancel")
+                                                .foregroundColor(.red)
+                                                .font(.caption2)
+                                        }
+
                                     }
                                 }
 
@@ -174,11 +198,18 @@ struct UserProfileView: View {
                                         appRouter.goToChat(with: chatId)
                                     }
                                 } label: {
-                                    Image(systemName: "message.fill")
-                                        .foregroundColor(.blue)
-                                        .padding()
-                                        .background(Color.white.opacity(0.1))
-                                        .clipShape(Circle())
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "message.fill")
+                                            .foregroundColor(.blue)
+                                            .padding()
+                                            .background(Color.white.opacity(0.1))
+                                            .clipShape(Circle())
+
+                                        Text("Chat")
+                                            .foregroundColor(.blue)
+                                            .font(.caption2)
+                                    }
+
                                 }
 
                             case .received:
@@ -186,22 +217,36 @@ struct UserProfileView: View {
                                     Button {
                                         Task{ await requestVM.acceptRequest(currentUserId:session.uid, from:user.id)}
                                     } label: {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                            .padding()
-                                            .background(Color.white.opacity(0.1))
-                                            .clipShape(Circle())
+                                        VStack(spacing: 4) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.green)
+                                                .padding()
+                                                .background(Color.white.opacity(0.1))
+                                                .clipShape(Circle())
+
+                                            Text("Accept")
+                                                .foregroundColor(.green)
+                                                .font(.caption2)
+                                        }
+
                                     }
 
                                     Button {
                                         Task{ await requestVM.declineRequest(currentUserId:session.uid, from:user.id)}
                                         print("❌ Decline Request")
                                     } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.red)
-                                            .padding()
-                                            .background(Color.white.opacity(0.1))
-                                            .clipShape(Circle())
+                                        VStack(spacing: 4) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.red)
+                                                .padding()
+                                                .background(Color.white.opacity(0.1))
+                                                .clipShape(Circle())
+
+                                            Text("Cancel")
+                                                .foregroundColor(.gray)
+                                                .font(.caption2)
+                                        }
+
                                     }
                                 }
                             }
