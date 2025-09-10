@@ -65,4 +65,45 @@ class UserProfileViewModel: ObservableObject {
 
         isSaving = false
     }
+    
+    func blockUser(targetId: String) async {
+        guard let myId = Auth.auth().currentUser?.uid else { return }
+        let ref = Firestore.firestore().collection("users").document(myId)
+        do {
+            try await ref.updateData([
+                "blocked": FieldValue.arrayUnion([targetId])
+            ])
+        } catch {
+            errorMessage = "❌ Failed to block: \(error.localizedDescription)"
+        }
+    }
+
+    func unblockUser(targetId: String) async {
+        guard let myId = Auth.auth().currentUser?.uid else { return }
+        let ref = Firestore.firestore().collection("users").document(myId)
+        do {
+            try await ref.updateData([
+                "blocked": FieldValue.arrayRemove([targetId])
+            ])
+        } catch {
+            errorMessage = "❌ Failed to unblock: \(error.localizedDescription)"
+        }
+    }
+    
+    func isBlockedBetween(currentId: String, targetId: String) async -> Bool {
+        let db = Firestore.firestore()
+        do {
+            let meDoc = try await db.collection("users").document(currentId).getDocument()
+            let themDoc = try await db.collection("users").document(targetId).getDocument()
+
+            let myBlocked = meDoc["blocked"] as? [String] ?? []
+            let theirBlocked = themDoc["blocked"] as? [String] ?? []
+
+            return myBlocked.contains(targetId) || theirBlocked.contains(currentId)
+        } catch {
+            return true // Safe default: blocked if error
+        }
+    }
+
+    
 }

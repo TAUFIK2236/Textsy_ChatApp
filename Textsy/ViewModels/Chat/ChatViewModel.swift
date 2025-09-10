@@ -48,13 +48,25 @@ class ChatViewModel: ObservableObject {
     }
 
     // MARK: - Realtime message listener (ChatView)
-    func listenToMessages(chatId: String) {
+    func listenToMessages(chatId: String) async {
         newerListener?.remove()
         messageListener?.remove()
         messages.removeAll()
         newestTimeStemp = nil
         oldestDoc = nil
         hasMoreOlder = true
+        
+        let chatDoc = try? await db.collection("chats").document(chatId).getDocument()
+        if let data = chatDoc?.data() {
+            let a = data["senderId"] as? String ?? ""
+            let b = data["receiverId"] as? String ?? ""
+            let blocked = await isBlockedBetween(a, b)
+            if blocked {
+                self.errorMessage = "🚫 Chat unavailable."
+                return
+            }
+        }
+
 
         messageListener = db.collection("chats")
             .document(chatId)
@@ -188,6 +200,13 @@ class ChatViewModel: ObservableObject {
             let senderName = chatData["senderName"] as? String ?? ""
             let receiverName = chatData["receiverName"] as? String ?? ""
 
+            // ✅ Block check
+            let isBlocked = await isBlockedBetween(uid, (uid == senderId ? receiverId : senderId))
+            if isBlocked {
+                errorMessage = "⚠️ You can’t message this user."
+                return
+            }
+
             let messageData: [String: Any] = [
                 "senderId": uid,
                 "receiverId": (uid == senderId) ? receiverId : senderId,
@@ -208,6 +227,7 @@ class ChatViewModel: ObservableObject {
             errorMessage = "❌ Failed to send message: \(error.localizedDescription)"
         }
     }
+
     
     
     func deleteMessageForUser(chatId: String, messageId: String, userId: String) async {
@@ -255,6 +275,11 @@ class ChatViewModel: ObservableObject {
         senderImage: String?,
         receiverImage: String?
     ) async {
+        
+        let isBlocked = await isBlockedBetween(senderId, receiverId)
+        if isBlocked { return }
+
+        
         let docRef = db.collection("chats").document(chatId)
         let exists = try? await docRef.getDocument().exists
         if exists == false {
@@ -295,6 +320,21 @@ class ChatViewModel: ObservableObject {
     
     func computeChatId(_ a: String, _ b: String) -> String {
         [a, b].sorted().joined(separator: "_")
+    }
+    
+    func isBlockedBetween(_ a: String, _ b: String) async -> Bool {
+        let db = Firestore.firestore()
+        do {
+            let aDoc = try await db.collection("users").document(a).getDocument()
+            let bDoc = try await db.collection("users").document(b).getDocument()
+
+            let aBlocked = aDoc["blocked"] as? [String] ?? []
+            let bBlocked = bDoc["blocked"] as? [String] ?? []
+
+            return aBlocked.contains(b) || bBlocked.contains(a)
+        } catch {
+            return true // default to safe
+        }
     }
 
 

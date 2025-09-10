@@ -37,11 +37,17 @@ struct UserProfileWrapperView: View {
         user = nil
 
         do {
-            let doc = try await Firestore.firestore()
-                .collection("users")
-                .document(userId)
-                .getDocument()
+            let db = Firestore.firestore()
 
+            // Check block status
+            let vm = UserProfileViewModel()
+            let blocked = await vm.isBlockedBetween(currentId: session.uid, targetId: userId)
+            if blocked {
+                error = "🚫 This user is not available."
+                return
+            }
+
+            let doc = try await db.collection("users").document(userId).getDocument()
             guard let data = doc.data() else {
                 error = "No user data found."
                 return
@@ -59,4 +65,5 @@ struct UserProfileWrapperView: View {
 
         isLoading = false
     }
+
 }
