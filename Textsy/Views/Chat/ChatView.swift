@@ -88,7 +88,7 @@ struct ChatView: View {
                     // ✅ Scroll to bottom once on appear
                     .onAppear {
                         Task {
-                            viewModel.listenToMessages(chatId: chatId)
+                            await viewModel.listenToMessages(chatId: chatId)
 
                             try? await Task.sleep(nanoseconds: 400_000_000)
                             withAnimation {
