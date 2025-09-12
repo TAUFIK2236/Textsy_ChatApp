@@ -3,6 +3,9 @@ import SwiftUI
 struct UserProfileView: View {
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var appRouter: AppRouter
+    @State private var showActionMenu = false
+    @State private var isBlocked = false
+    @StateObject private var profileVM = UserProfileViewModel()
     @StateObject private var requestVM = RequestViewModel()
 
 
@@ -39,6 +42,23 @@ struct UserProfileView: View {
                             .foregroundColor(.white)
 
                         Spacer()
+                        
+                        // 3-Dot Button
+                        if user.id != session.uid {
+                            Button {
+                                showActionMenu = true
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .rotationEffect(.degrees(90))
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(Color.white.opacity(0.1))
+                                    .clipShape(Circle())
+                            }
+                        }
+                        
+                        
 
                         Button(action: {
                             Task {
@@ -260,10 +280,31 @@ struct UserProfileView: View {
                 .padding(.bottom, 40)
             }
             .background(Color(.bgc))
+            .confirmationDialog("More options", isPresented: $showActionMenu, titleVisibility: .visible) {
+                if isBlocked {
+                    Button("Unblock", role: .destructive) {
+                        Task {
+                            await profileVM.unblockUser(targetId: user.id)
+                            isBlocked = false
+                        }
+                    }
+                } else {
+                    Button("Block", role: .destructive) {
+                        Task {
+                            await profileVM.blockUser(targetId: user.id)
+                            isBlocked = true
+                        }
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {}
+            }
+
         }
         .onAppear{
-            Task{
+            Task {
                 await requestVM.checkStatus(currentUserId: session.uid, viewedUserId: user.id)
+                isBlocked = await profileVM.isBlockedBetween(currentId: session.uid, targetId: user.id)
             }
         }
 
@@ -307,6 +348,7 @@ struct UserProfileView: View {
             profileImageUrl: nil
         ))
         .environmentObject(UserSession.shared)
+        
         
     }
 }
