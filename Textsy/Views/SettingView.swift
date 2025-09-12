@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseFirestore
 
 struct SettingView: View {
     @EnvironmentObject var session: UserSession
@@ -8,6 +9,11 @@ struct SettingView: View {
     @State private var showDeleteAlert = false
     @State private var isDeleting = false
     @State private var isDrawerOpen = false // 👈 our own drawer state!
+    
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    @StateObject private var profileVM = UserProfileViewModel()
+    @State private var blockedUsers: [UserModel] = []
 
     var body: some View {
         ZStack {
@@ -52,6 +58,57 @@ struct SettingView: View {
                     .cornerRadius(10)
                     .foregroundColor(.white)
 
+                // 🚫 Blocked Users List
+                if !blockedUsers.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Blocked Users")
+                            .font(.headline)
+                            .foregroundColor(.white)
+
+                        ForEach(blockedUsers, id: \ .id) { user in
+                            HStack {
+                                if let url = URL(string: user.profileImageUrl ?? "") {
+                                    AsyncImage(url: url) { image in
+                                        image.resizable().scaledToFill()
+                                    } placeholder: {
+                                        Color.gray
+                                    }
+                                    .frame(width: 40, height: 40)
+                                    .clipShape(Circle())
+                                }
+
+                                VStack(alignment: .leading) {
+                                    Text(user.name)
+                                        .foregroundColor(.white)
+                                        .font(.subheadline.bold())
+                                    Text(user.location)
+                                        .foregroundColor(.gray)
+                                        .font(.caption)
+                                }
+
+                                Spacer()
+
+                                Button("Unblock") {
+                                    Task {
+                                        await profileVM.unblockUser(targetId: user.id)
+                                        toastMessage = "Unblocked \(user.name)"
+                                        showToast = true
+                                        await loadBlockedUsers()
+                                    }
+                                }
+                                .font(.caption)
+                                .padding(6)
+                                .background(Color.red.opacity(0.2))
+                                .foregroundColor(.red)
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.fieldT))
+                    .cornerRadius(10)
+                }
+
                 // 🗑️ Delete Account
                 Button(role: .destructive) {
                     showDeleteAlert = true
@@ -73,6 +130,32 @@ struct SettingView: View {
             .padding()
             .background(Color(.bgc))
             .blur(radius: isDrawerOpen ? 8 : 0)
+            .onAppear {
+                Task {
+                    await loadBlockedUsers()
+                }
+            }
+
+            .overlay(
+                VStack {
+                    if showToast {
+                        Text(toastMessage)
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.black.opacity(0.8))
+                            .cornerRadius(10)
+                            .padding(.top, 50)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .onAppear {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                    showToast = false
+                                }
+                            }
+                    }
+                    Spacer()
+                }, alignment: .top
+            )
 
             // 🧠 Drawer Overlay
             .overlay(
@@ -100,6 +183,22 @@ struct SettingView: View {
         }
     }
 
+    // 🔄 Load blocked users
+    func loadBlockedUsers() async {
+        let uid = session.uid 
+        let db = Firestore.firestore()
+        do {
+            let meDoc = try await db.collection("users").document(uid).getDocument()
+            let myBlocked = meDoc["blocked"] as? [String] ?? []
+            let allUsersSnapshot = try await db.collection("users").getDocuments()
+            let users = allUsersSnapshot.documents.compactMap { UserModel(id: $0.documentID, data: $0.data()) }
+            self.blockedUsers = users.filter { myBlocked.contains($0.id) }
+        } catch {
+            toastMessage = "⚠️ Failed to load blocked list"
+            showToast = true
+        }
+    }
+
     // 🧨 Delete from Firebase
     func deleteAccount() async {
         isDeleting = true
@@ -107,3 +206,4 @@ struct SettingView: View {
         isDeleting = false
     }
 }
+

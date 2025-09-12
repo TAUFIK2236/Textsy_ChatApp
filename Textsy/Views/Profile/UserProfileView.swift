@@ -5,6 +5,10 @@ struct UserProfileView: View {
     @EnvironmentObject var appRouter: AppRouter
     @State private var showActionMenu = false
     @State private var isBlocked = false
+    
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    
     @StateObject private var profileVM = UserProfileViewModel()
     @StateObject private var requestVM = RequestViewModel()
 
@@ -293,12 +297,36 @@ struct UserProfileView: View {
                         Task {
                             await profileVM.blockUser(targetId: user.id)
                             isBlocked = true
+                            toastMessage = "User blocked"
+                            showToast = true
+                            appRouter.goToExplore() // optional: go back
                         }
+
                     }
                 }
 
                 Button("Cancel", role: .cancel) {}
             }
+            .overlay(
+            VStack {
+            if showToast {
+            Text(toastMessage)
+            .font(.subheadline)
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.black.opacity(0.8))
+            .cornerRadius(10)
+            .padding(.top, 60)
+            .transition(.move(edge: .top))
+            .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            showToast = false
+            }
+            }
+            }
+            Spacer()
+            }, alignment: .top
+            )
 
         }
         .onAppear{
