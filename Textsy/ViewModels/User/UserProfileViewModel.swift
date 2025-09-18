@@ -66,44 +66,69 @@ class UserProfileViewModel: ObservableObject {
         isSaving = false
     }
     
-    func blockUser(targetId: String) async {
-        guard let myId = Auth.auth().currentUser?.uid else { return }
-        let ref = Firestore.firestore().collection("users").document(myId)
-        do {
-            try await ref.updateData([
-                "blocked": FieldValue.arrayUnion([targetId])
-            ])
-        } catch {
-            errorMessage = "❌ Failed to block: \(error.localizedDescription)"
-        }
-    }
+//    func blockUser(targetId: String) async {
+//        guard let myId = Auth.auth().currentUser?.uid else { return }
+//        let ref = Firestore.firestore().collection("users").document(myId)
+//        do {
+//            try await ref.updateData([
+//                "blocked": FieldValue.arrayUnion([targetId])
+//            ])
+//        } catch {
+//            errorMessage = "❌ Failed to block: \(error.localizedDescription)"
+//        }
+//    }
 
-    func unblockUser(targetId: String) async {
-        guard let myId = Auth.auth().currentUser?.uid else { return }
-        let ref = Firestore.firestore().collection("users").document(myId)
-        do {
-            try await ref.updateData([
-                "blocked": FieldValue.arrayRemove([targetId])
-            ])
-        } catch {
-            errorMessage = "❌ Failed to unblock: \(error.localizedDescription)"
-        }
-    }
+//    func unblockUser(targetId: String) async {
+//        guard let myId = Auth.auth().currentUser?.uid else { return }
+//        let ref = Firestore.firestore().collection("users").document(myId)
+//        do {
+//            try await ref.updateData([
+//                "blocked": FieldValue.arrayRemove([targetId])
+//            ])
+//        } catch {
+//            errorMessage = "❌ Failed to unblock: \(error.localizedDescription)"
+//        }
+//    }
     
-    func isBlockedBetween(currentId: String, targetId: String) async -> Bool {
-        let db = Firestore.firestore()
-        do {
-            let meDoc = try await db.collection("users").document(currentId).getDocument()
-            let themDoc = try await db.collection("users").document(targetId).getDocument()
+//    func isBlockedBetween(currentId: String, targetId: String) async -> Bool {
+//        let db = Firestore.firestore()
+//        do {
+//            let meDoc = try await db.collection("users").document(currentId).getDocument()
+//            let themDoc = try await db.collection("users").document(targetId).getDocument()
+//
+//            let myBlocked = meDoc["blocked"] as? [String] ?? []
+//            let theirBlocked = themDoc["blocked"] as? [String] ?? []
+//
+//            return myBlocked.contains(targetId) || theirBlocked.contains(currentId)
+//        } catch {
+//            return true // Safe default: blocked if error
+//        }
+//    }
+//    func checkReportThreshold(for userId: String) async {
+//        let db = Firestore.firestore()
+//
+//        do {
+//            let query = try await db.collection("reports")
+//                .whereField("reportedId", isEqualTo: userId)
+//                .whereField("action", isEqualTo: false)
+//                .getDocuments()
+//
+//            let reportCount = query.documents.count
+//
+//            // 🚨 Suspend if 20 or more unresolved reports
+//            let shouldSuspend = reportCount >= 20
+//
+//            try await db.collection("users")
+//                .document(userId)
+//                .updateData(["isSuspended": shouldSuspend])
+//
+//            print("👮‍♂️ User \(userId) suspended status: \(shouldSuspend)")
+//
+//        } catch {
+//            print("❌ Failed to check report threshold: \(error.localizedDescription)")
+//        }
+//    }
 
-            let myBlocked = meDoc["blocked"] as? [String] ?? []
-            let theirBlocked = themDoc["blocked"] as? [String] ?? []
-
-            return myBlocked.contains(targetId) || theirBlocked.contains(currentId)
-        } catch {
-            return true // Safe default: blocked if error
-        }
-    }
 
     
 }

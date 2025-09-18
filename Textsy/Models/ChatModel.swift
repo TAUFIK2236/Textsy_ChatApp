@@ -196,3 +196,38 @@ struct RequestModel: Identifiable, Codable {
         ]
     }
 }
+
+struct ReportModel: Identifiable {
+    var id: String
+    var reporterId: String
+    var reportedId: String
+    var reason: String
+    var otherReason: String?
+    var action: Bool
+    var feedback: String?
+    var timestamp: Date
+
+    init(id: String, data: [String: Any]) {
+        self.id = id
+        self.reporterId = data["reporterId"] as? String ?? ""
+        self.reportedId = data["reportedId"] as? String ?? ""
+        self.reason = data["reason"] as? String ?? ""
+        self.timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
+        self.otherReason = data["otherReason"] as? String
+        self.action = data["action"] as? Bool ?? false
+        self.feedback = data["feedback"] as? String
+       
+    }
+    func toDict() -> [String: Any] {
+        return [
+            "reporterId": reporterId,
+            "reportedId": reportedId,
+            "reason": reason,
+            "otherReason": otherReason ?? "",
+            "action": action,
+            "feedback": feedback ?? "",
+            "timestamp": Timestamp(date: timestamp)
+        ]
+    }
+}
+

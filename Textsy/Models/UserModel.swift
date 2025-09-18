@@ -9,6 +9,8 @@ struct UserModel: Identifiable, Codable, Hashable {
     var location: String
     var bio: String
     var profileImageUrl: String? // 🌄 May be nil
+    var isSuspended: Bool = false
+
 
     // ✅ Init from Firestore document
     init?(id: String, data: [String: Any]) {
@@ -17,6 +19,7 @@ struct UserModel: Identifiable, Codable, Hashable {
             let age = data["age"] as? Int,
             let location = data["location"] as? String,
             let bio = data["bio"] as? String
+                
         else {
             return nil // ❌ If anything is missing, fail
         }
@@ -26,7 +29,9 @@ struct UserModel: Identifiable, Codable, Hashable {
         self.age = age
         self.location = location
         self.bio = bio
-        self.profileImageUrl = data["profileImageUrl"] as? String // optional
+        self.profileImageUrl = data["profileImageUrl"] as? String// optional
+        self.isSuspended = data["isSuspended"] as? Bool ?? false
+
     }
     
     // ✅ Manual init so we can create UserModel directly (not from Firestore)
@@ -46,7 +51,8 @@ struct UserModel: Identifiable, Codable, Hashable {
             "age": age,
             "location": location,
             "bio": bio,
-            "profileImageUrl": profileImageUrl ?? ""
+            "profileImageUrl": profileImageUrl ?? "",
+            "isSuspended": isSuspended
         ]
     }
 }
